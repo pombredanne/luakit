@@ -23,6 +23,7 @@
 #include "luah.h"
 #include "widgets/common.h"
 #include "classes/download.h"
+#include "classes/inspector.h"
 #include <JavaScriptCore/JavaScript.h>
 #include <webkit/webkit.h>
 #include <libsoup/soup.h>
@@ -1145,6 +1146,10 @@ luaH_webview_index(lua_State *L, luakit_token_t token)
       case L_TK_URI:
         tmp.c = g_object_get_data(G_OBJECT(view), "uri");
         lua_pushstring(L, tmp.c);
+        return 1;
+
+      case L_TK_INSPECTOR:
+        luaH_push_inspector(L, WEBKIT_WEB_VIEW(view));
         return 1;
 
       case L_TK_HISTORY:

@@ -3,6 +3,7 @@ atindex
 bg
 cache_dir
 clear_search
+close
 config_dir
 confpath
 count
@@ -44,6 +45,7 @@ hovered_uri
 icon
 indexof
 insert
+inspector
 install_path
 interval
 label
@@ -105,12 +107,14 @@ vbox
 verbose
 version
 VIDEOS
+visible
 webkit_major_version
 webkit_micro_version
 webkit_minor_version
 webkit_user_agent_major_version
 webkit_user_agent_minor_version
 webview
+widget
 window
 windows
 xid

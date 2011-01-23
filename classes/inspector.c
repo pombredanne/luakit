@@ -1,0 +1,151 @@
+/*
+ * inspector.c - WebKitWebInspector wrapper
+ *
+ * Copyright (C) 2010 Fabian Streitel <karottenreibe@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+#include "globalconf.h"
+#include "luah.h"
+#include "classes/widget.h"
+#include <webkit/webkit.h>
+
+typedef struct
+{
+    LUA_OBJECT_HEADER
+    WebKitWebInspector* inspector;
+    widget_t* webview;
+} inspector_t;
+
+static lua_class_t inspector_class;
+LUA_OBJECT_FUNCS(inspector_class, inspector_t, inspector)
+
+static widget_t *
+inspector_get_widget(inspector_t *i)
+{
+    WebKitWebView *inspector_view = webkit_web_inspector_get_web_view(i->inspector);
+    if (inspector_view) {
+        return g_object_get_data(G_OBJECT(inspector_view), "lua_widget");
+    } else {
+        return NULL;
+    }
+}
+
+static WebKitWebView*
+inspect_webview_cb(WebKitWebInspector *inspector, WebKitWebView *v, inspector_t *i)
+{
+    (void) inspector;
+    (void) v;
+
+    lua_State *L = globalconf.L;
+    luaH_object_push(L, i->webview->ref);
+    gint nret = luaH_object_emit_signal(L, -1, "inspect-web-view", 0, 1);
+    if (nret > 0) {
+        widget_t *new = luaH_checkwidget(L, -1);
+        return WEBKIT_WEB_VIEW(g_object_get_data(G_OBJECT(new->widget), "webview"));
+    } else {
+        return NULL;
+    }
+}
+
+static gboolean
+show_window_cb(WebKitWebInspector *inspector, inspector_t *i)
+{
+    (void) inspector;
+
+    lua_State *L = globalconf.L;
+    luaH_object_push(L, i->webview->ref);
+    gint nret = luaH_object_emit_signal(L, -1, "inspect-web-view", 0, 1);
+    if (nret > 0 && luaH_checkboolean(L, -1)) {
+        return TRUE;
+    }
+    return FALSE;
+}
+
+static gint
+luaH_inspector_show(lua_State *L)
+{
+    inspector_t *i = luaH_checkudata(L, 1, &inspector_class);
+    webkit_web_inspector_show(i->inspector);
+    return 0;
+}
+
+static gint
+luaH_inspector_close(lua_State *L)
+{
+    inspector_t *i = luaH_checkudata(L, 1, &inspector_class);
+    webkit_web_inspector_close(i->inspector);
+    return 0;
+}
+
+static gint
+luaH_inspector_get_widget(lua_State *L, inspector_t *i)
+{
+    widget_t *w = inspector_get_widget(i);
+    if (w) {
+        luaH_object_push(L, w->ref);
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+void
+luaH_push_inspector(lua_State *L, WebKitWebView *v)
+{
+    inspector_class.allocator(L);
+    inspector_t *i = luaH_checkudata(L, -1, &inspector_class);
+
+    i->inspector = webkit_web_view_get_inspector(v);
+
+    /* connect inspector signals */
+    g_object_connect(G_OBJECT(i->inspector),
+      "signal::inspect-web-view",            G_CALLBACK(inspect_webview_cb),   i,
+      "signal::show-window",                 G_CALLBACK(show_window_cb),       i,
+      NULL);
+
+    lua_pop(L, 1);
+}
+
+void
+inspector_class_setup(lua_State *L)
+{
+    static const struct luaL_reg inspector_methods[] =
+    {
+        LUA_CLASS_METHODS(inspector)
+        { NULL, NULL }
+    };
+
+    static const struct luaL_reg inspector_meta[] =
+    {
+        LUA_OBJECT_META(inspector)
+        LUA_CLASS_META
+        { "show", luaH_inspector_show },
+        { "close", luaH_inspector_close },
+        { NULL, NULL },
+    };
+
+    luaH_class_setup(L, &inspector_class, "inspector",
+                     (lua_class_allocator_t) NULL,
+                     luaH_class_index_miss_property, luaH_class_newindex_miss_property,
+                     inspector_methods, inspector_meta);
+    luaH_class_add_property(&inspector_class, L_TK_WIDGET,
+                            (lua_class_propfunc_t) NULL,
+                            (lua_class_propfunc_t) luaH_inspector_get_widget,
+                            (lua_class_propfunc_t) NULL);
+}
+
+// vim: ft=c:et:sw=4:ts=8:sts=4:tw=80

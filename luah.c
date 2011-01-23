@@ -29,6 +29,7 @@
 #include "classes/widget.h"
 #include "classes/timer.h"
 #include "classes/download.h"
+#include "classes/inspector.h"
 #include "luah.h"
 
 void
@@ -761,6 +762,9 @@ luaH_init(void)
 
     /* Export download */
     download_class_setup(L);
+
+    /* Export inspector */
+    inspector_class_setup(L);
 
     /* Export timer */
     timer_class_setup(L);
