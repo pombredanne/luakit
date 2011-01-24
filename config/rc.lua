@@ -47,6 +47,9 @@ require "formfiller"
 -- Add proxy support & manager
 require "proxy"
 
+-- Add web inspector
+require "webinspector"
+
 -- Add quickmarks support & manager
 require "quickmarks"
 

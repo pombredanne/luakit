@@ -261,7 +261,6 @@ add_cmds({
     cmd("print",                        function (w)    w:eval_js("print()", "rc.lua") end),
     cmd({"viewsource",  "vs" },         function (w)    w:toggle_source(true) end),
     cmd({"viewsource!", "vs!"},         function (w)    w:toggle_source() end),
-    cmd({"inspect"},                    function (w)    w:toggle_inspector() end),
     cmd("inc[rease]",                   function (w, a) w:navigate(w:inc_uri(tonumber(a) or 1)) end),
     cmd({"javascript",   "js"},         function (w, a) w:eval_js(a, "javascript") end),
     cmd("lua",                          function (w, a) assert(loadstring("return function(w) "..a.." end"))()(w) end),
