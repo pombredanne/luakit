@@ -24,9 +24,19 @@
 
 #include <lua.h>
 #include <webkit/webkit.h>
+#include "classes/widget.h"
+
+typedef struct
+{
+    LUA_OBJECT_HEADER
+    WebKitWebInspector* inspector;
+    widget_t* webview;
+    gpointer ref;
+} inspector_t;
 
 void inspector_class_setup(lua_State *);
-void luaH_push_inspector(lua_State *, WebKitWebView *);
+inspector_t* luaH_inspector_new(lua_State *, WebKitWebView *);
+void luaH_inspector_destroy(lua_State *, inspector_t *);
 
 #endif
 

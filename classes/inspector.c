@@ -19,16 +19,7 @@
  */
 
 #include "globalconf.h"
-#include "luah.h"
-#include "classes/widget.h"
-#include <webkit/webkit.h>
-
-typedef struct
-{
-    LUA_OBJECT_HEADER
-    WebKitWebInspector* inspector;
-    widget_t* webview;
-} inspector_t;
+#include "classes/inspector.h"
 
 static lua_class_t inspector_class;
 LUA_OBJECT_FUNCS(inspector_class, inspector_t, inspector)
@@ -107,13 +98,14 @@ luaH_inspector_get_widget(lua_State *L, inspector_t *i)
     }
 }
 
-void
-luaH_push_inspector(lua_State *L, WebKitWebView *v)
+inspector_t *
+luaH_inspector_new(lua_State *L, WebKitWebView *v)
 {
     inspector_class.allocator(L);
     inspector_t *i = luaH_checkudata(L, -1, &inspector_class);
 
     i->inspector = webkit_web_view_get_inspector(v);
+    i->ref = luaH_object_ref(L, -1);
 
     /* connect inspector signals */
     g_object_connect(G_OBJECT(i->inspector),
@@ -121,7 +113,12 @@ luaH_push_inspector(lua_State *L, WebKitWebView *v)
       "signal::show-window",                 G_CALLBACK(show_window_cb),       i,
       NULL);
 
-    lua_pop(L, 1);
+    return i;
+}
+
+void
+luaH_inspector_destroy(lua_State *L, inspector_t *i) {
+    luaH_object_unref(L, i->ref);
 }
 
 void
