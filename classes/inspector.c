@@ -99,13 +99,15 @@ luaH_inspector_get_widget(lua_State *L, inspector_t *i)
 }
 
 inspector_t *
-luaH_inspector_new(lua_State *L, WebKitWebView *v)
+luaH_inspector_new(lua_State *L, widget_t *w)
 {
     inspector_class.allocator(L);
     inspector_t *i = luaH_checkudata(L, -1, &inspector_class);
 
-    i->inspector = webkit_web_view_get_inspector(v);
     i->ref = luaH_object_ref(L, -1);
+    i->webview = w;
+    WebKitWebView *v = WEBKIT_WEB_VIEW(g_object_get_data(G_OBJECT(w->widget), "webview"));
+    i->inspector = webkit_web_view_get_inspector(v);
 
     /* connect inspector signals */
     g_object_connect(G_OBJECT(i->inspector),

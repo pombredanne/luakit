@@ -1448,7 +1448,7 @@ widget_webview(widget_t *w)
     w->widget = gtk_scrolled_window_new(NULL, NULL);
     g_object_set_data(G_OBJECT(w->widget), "lua_widget", w);
     g_object_set_data(G_OBJECT(w->widget), "webview", view);
-    g_object_set_data(G_OBJECT(w->widget), "inspector", luaH_inspector_new(globalconf.L, WEBKIT_WEB_VIEW(view)));
+    g_object_set_data(G_OBJECT(w->widget), "inspector", luaH_inspector_new(globalconf.L, w));
     gtk_container_add(GTK_CONTAINER(w->widget), view);
 
     /* set initial scrollbars state */

@@ -35,7 +35,7 @@ typedef struct
 } inspector_t;
 
 void inspector_class_setup(lua_State *);
-inspector_t* luaH_inspector_new(lua_State *, WebKitWebView *);
+inspector_t* luaH_inspector_new(lua_State *, widget_t *);
 void luaH_inspector_destroy(lua_State *, inspector_t *);
 
 #endif
