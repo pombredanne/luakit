@@ -10,6 +10,7 @@ webview.init_funcs = {
     -- Set global properties
     set_global_props = function (view, w)
         view:set_prop('user-agent', globals.useragent)
+        view:set_prop('enable-developer-extras', true)
         -- Set ssl options
         if globals.ssl_strict ~= nil then
             view:set_prop('ssl-strict', globals.ssl_strict)
@@ -268,6 +269,15 @@ webview.methods = {
     toggle_source = function (view, w, show)
         if show == nil then show = not view:get_view_source() end
         view:set_view_source(show)
+    end,
+
+    -- Toggle web inspector
+    toggle_inspector = function (view, w)
+        if view.inspector.visible then
+            view.inspector:close()
+        else
+            view.inspector:show()
+        end
     end,
 
     -- Zoom functions
