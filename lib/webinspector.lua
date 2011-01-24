@@ -3,7 +3,7 @@
 -- (C) 2010 Fabian Streitel <karottenreibe@gmail.com>  --
 ---------------------------------------------------------
 
-local windows = {}
+local windows = setmetatable({}, {__mode = "k"})
 
 -- Register signal handlers and enable inspector.
 webview.init_funcs.inspector = function (view, w)
@@ -19,6 +19,14 @@ webview.init_funcs.inspector = function (view, w)
         local win = windows[iview]
         if win then
           win:show()
+          return true
+        end
+    end)
+    view:add_signal("close-inspector", function (_, iview)
+        local win = windows[iview]
+        if win then
+          windows[iview] = nil
+          win:destroy()
           return true
         end
     end)

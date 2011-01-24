@@ -56,6 +56,20 @@ show_window_cb(WebKitWebInspector *inspector, inspector_t *i)
     return ret;
 }
 
+static gboolean
+close_window_cb(WebKitWebInspector *inspector, inspector_t *i)
+{
+    (void) inspector;
+
+    lua_State *L = globalconf.L;
+    luaH_object_push(L, i->webview->ref);
+    luaH_object_push(L, i->widget->ref);
+    gint nret = luaH_object_emit_signal(L, -2, "close-inspector", 1, 1);
+    gboolean ret = (nret > 0 && luaH_checkboolean(L, -1));
+    lua_pop(L, nret + 1);
+    return ret;
+}
+
 static gint
 luaH_inspector_show(lua_State *L)
 {
@@ -99,6 +113,7 @@ luaH_inspector_new(lua_State *L, widget_t *w)
     g_object_connect(G_OBJECT(i->inspector),
       "signal::inspect-web-view",            G_CALLBACK(inspect_webview_cb),   i,
       "signal::show-window",                 G_CALLBACK(show_window_cb),       i,
+      "signal::close-window",                G_CALLBACK(close_window_cb),      i,
       NULL);
 
     return i;
