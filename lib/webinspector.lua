@@ -3,14 +3,24 @@
 -- (C) 2010 Fabian Streitel <karottenreibe@gmail.com>  --
 ---------------------------------------------------------
 
+local windows = {}
+
 -- Register signal handlers and enable inspector.
 webview.init_funcs.inspector = function (view, w)
     view:set_prop("enable-developer-extras", true)
     view:add_signal("inspect-web-view", function ()
-        return widget{type="webview"}
+        local win = widget{type="window"}
+        local iview = widget{type="webview"}
+        win:set_child(iview)
+        windows[iview] = win
+        return iview
     end)
-    view:add_signal("show-inspector", function (iview)
-        -- TODO
+    view:add_signal("show-inspector", function (_, iview)
+        local win = windows[iview]
+        if win then
+          win:show()
+          return true
+        end
     end)
 end
 

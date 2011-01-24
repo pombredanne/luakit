@@ -31,6 +31,7 @@ typedef struct
     LUA_OBJECT_HEADER
     WebKitWebInspector* inspector;
     widget_t* webview;
+    widget_t* widget;
     gpointer ref;
 } inspector_t;
 

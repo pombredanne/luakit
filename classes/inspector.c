@@ -24,17 +24,6 @@
 static lua_class_t inspector_class;
 LUA_OBJECT_FUNCS(inspector_class, inspector_t, inspector)
 
-static widget_t *
-inspector_get_widget(inspector_t *i)
-{
-    WebKitWebView *inspector_view = webkit_web_inspector_get_web_view(i->inspector);
-    if (inspector_view) {
-        return g_object_get_data(G_OBJECT(inspector_view), "lua_widget");
-    } else {
-        return NULL;
-    }
-}
-
 static WebKitWebView*
 inspect_webview_cb(WebKitWebInspector *inspector, WebKitWebView *v, inspector_t *i)
 {
@@ -46,6 +35,7 @@ inspect_webview_cb(WebKitWebInspector *inspector, WebKitWebView *v, inspector_t 
     gint nret = luaH_object_emit_signal(L, -1, "inspect-web-view", 0, 1);
     if (nret > 0) {
         widget_t *new = luaH_checkwidget(L, -1);
+        i->widget = new;
         return WEBKIT_WEB_VIEW(g_object_get_data(G_OBJECT(new->widget), "webview"));
     } else {
         return NULL;
@@ -59,11 +49,11 @@ show_window_cb(WebKitWebInspector *inspector, inspector_t *i)
 
     lua_State *L = globalconf.L;
     luaH_object_push(L, i->webview->ref);
-    gint nret = luaH_object_emit_signal(L, -1, "show-inspector", 0, 1);
-    if (nret > 0 && luaH_checkboolean(L, -1)) {
-        return TRUE;
-    }
-    return FALSE;
+    luaH_object_push(L, i->widget->ref);
+    gint nret = luaH_object_emit_signal(L, -2, "show-inspector", 1, 1);
+    gboolean ret = (nret > 0 && luaH_checkboolean(L, -1));
+    lua_pop(L, nret + 1);
+    return ret;
 }
 
 static gint
@@ -85,13 +75,12 @@ luaH_inspector_close(lua_State *L)
 static gint
 luaH_inspector_get_widget(lua_State *L, inspector_t *i)
 {
-    widget_t *w = inspector_get_widget(i);
-    if (w) {
-        luaH_object_push(L, w->ref);
-        return 1;
+    if (i->widget) {
+        luaH_object_push(L, i->widget->ref);
     } else {
-        return 0;
+        lua_pushnil(L);
     }
+    return 1;
 }
 
 inspector_t *
@@ -102,6 +91,7 @@ luaH_inspector_new(lua_State *L, widget_t *w)
 
     i->ref = luaH_object_ref(L, -1);
     i->webview = w;
+    i->widget = NULL;
     WebKitWebView *v = WEBKIT_WEB_VIEW(g_object_get_data(G_OBJECT(w->widget), "webview"));
     i->inspector = webkit_web_view_get_inspector(v);
 
