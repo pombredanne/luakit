@@ -19,7 +19,6 @@ webview.init_funcs.inspector = function (view, w)
         local win = windows[iview]
         if win then
           win:show()
-          return true
         end
     end)
     view:add_signal("close-inspector", function (_, iview)
@@ -27,23 +26,23 @@ webview.init_funcs.inspector = function (view, w)
         if win then
           windows[iview] = nil
           win:destroy()
-          return true
         end
     end)
 end
 
 -- Toggle web inspector.
-webview.methods.toggle_inspector = function (view, w)
-    if view.inspector.visible then
-        view.inspector:close()
-    else
+webview.methods.toggle_inspector = function (view, w, show)
+    if show or not view.inspector.visible then
         view.inspector:show()
+    else
+        view.inspector:close()
     end
 end
 
 -- Add command to toggle inspector.
 local cmd = lousy.bind.cmd
 add_cmds({
-    cmd({"inspect"},       function (w)    w:toggle_inspector() end),
+    cmd({"inspect"},       function (w)    w:toggle_inspector(true) end),
+    cmd({"inspect!"},      function (w)    w:toggle_inspector() end),
 })
 

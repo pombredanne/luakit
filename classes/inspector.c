@@ -50,10 +50,10 @@ show_window_cb(WebKitWebInspector *inspector, inspector_t *i)
     lua_State *L = globalconf.L;
     luaH_object_push(L, i->webview->ref);
     luaH_object_push(L, i->widget->ref);
-    gint nret = luaH_object_emit_signal(L, -2, "show-inspector", 1, 1);
-    gboolean ret = (nret > 0 && luaH_checkboolean(L, -1));
-    lua_pop(L, nret + 1);
-    return ret;
+    luaH_object_emit_signal(L, -2, "show-inspector", 1, 0);
+    i->visible = TRUE;
+    lua_pop(L, 1);
+    return TRUE;
 }
 
 static gboolean
@@ -64,10 +64,10 @@ close_window_cb(WebKitWebInspector *inspector, inspector_t *i)
     lua_State *L = globalconf.L;
     luaH_object_push(L, i->webview->ref);
     luaH_object_push(L, i->widget->ref);
-    gint nret = luaH_object_emit_signal(L, -2, "close-inspector", 1, 1);
-    gboolean ret = (nret > 0 && luaH_checkboolean(L, -1));
-    lua_pop(L, nret + 1);
-    return ret;
+    luaH_object_emit_signal(L, -2, "close-inspector", 1, 0);
+    i->visible = FALSE;
+    lua_pop(L, 1);
+    return TRUE;
 }
 
 static gint
@@ -84,6 +84,13 @@ luaH_inspector_close(lua_State *L)
     inspector_t *i = luaH_checkudata(L, 1, &inspector_class);
     webkit_web_inspector_close(i->inspector);
     return 0;
+}
+
+static gint
+luaH_inspector_is_visible(lua_State *L, inspector_t *i)
+{
+    lua_pushboolean(L, i->visible);
+    return 1;
 }
 
 static gint
@@ -149,6 +156,10 @@ inspector_class_setup(lua_State *L)
     luaH_class_add_property(&inspector_class, L_TK_WIDGET,
                             (lua_class_propfunc_t) NULL,
                             (lua_class_propfunc_t) luaH_inspector_get_widget,
+                            (lua_class_propfunc_t) NULL);
+    luaH_class_add_property(&inspector_class, L_TK_VISIBLE,
+                            (lua_class_propfunc_t) NULL,
+                            (lua_class_propfunc_t) luaH_inspector_is_visible,
                             (lua_class_propfunc_t) NULL);
 }
 

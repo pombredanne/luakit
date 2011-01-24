@@ -33,6 +33,7 @@ typedef struct
     widget_t* webview;
     widget_t* widget;
     gpointer ref;
+    gboolean visible;
 } inspector_t;
 
 void inspector_class_setup(lua_State *);
