@@ -36,6 +36,7 @@ LUA_OBJECT_FUNCS(inspector_class, inspector_t, inspector)
 static widget_t *
 inspector_get_widget(inspector_t *i)
 {
+    printf("widget\n");
     WebKitWebView *inspector_view = webkit_web_inspector_get_web_view(i->inspector);
     if (inspector_view) {
         return g_object_get_data(G_OBJECT(inspector_view), "lua_widget");
@@ -47,6 +48,7 @@ inspector_get_widget(inspector_t *i)
 static WebKitWebView*
 inspect_webview_cb(WebKitWebInspector *inspector, WebKitWebView *v, inspector_t *i)
 {
+    printf("inspect\n");
     (void) inspector;
     (void) v;
 
@@ -64,6 +66,7 @@ inspect_webview_cb(WebKitWebInspector *inspector, WebKitWebView *v, inspector_t 
 static gboolean
 show_window_cb(WebKitWebInspector *inspector, inspector_t *i)
 {
+    printf("window\n");
     (void) inspector;
 
     lua_State *L = globalconf.L;
@@ -78,6 +81,7 @@ show_window_cb(WebKitWebInspector *inspector, inspector_t *i)
 static gint
 luaH_inspector_show(lua_State *L)
 {
+    printf("show\n");
     inspector_t *i = luaH_checkudata(L, 1, &inspector_class);
     webkit_web_inspector_show(i->inspector);
     return 0;
@@ -139,7 +143,7 @@ inspector_class_setup(lua_State *L)
     };
 
     luaH_class_setup(L, &inspector_class, "inspector",
-                     (lua_class_allocator_t) NULL,
+                     (lua_class_allocator_t) inspector_new,
                      luaH_class_index_miss_property, luaH_class_newindex_miss_property,
                      inspector_methods, inspector_meta);
     luaH_class_add_property(&inspector_class, L_TK_WIDGET,
