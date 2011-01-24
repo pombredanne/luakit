@@ -18,15 +18,34 @@ webview.init_funcs.inspector = function (view, w)
     view:add_signal("show-inspector", function (_, iview)
         local win = windows[iview]
         if win then
-          win:show()
+            win:show()
         end
     end)
     view:add_signal("close-inspector", function (_, iview)
         local win = windows[iview]
-        if win then
-          windows[iview] = nil
-          win:destroy()
+        if view.inspector.attached then
+            w.layout:remove(iview)
         end
+        if win then
+            win:destroy()
+        end
+        windows[iview] = nil
+    end)
+    view:add_signal("attach-inspector", function (_, iview)
+        local win = windows[iview]
+        if win then
+            win:remove(iview)
+            w.layout:pack_start(iview, true, true, 0)
+            windows[iview] = nil
+            win:destroy()
+        end
+    end)
+    view:add_signal("detach-inspector", function (_, iview)
+        local win = widget{type="window"}
+        w.layout:remove(iview)
+        win:set_child(iview)
+        windows[iview] = win
+        win:show()
     end)
 end
 
@@ -46,3 +65,4 @@ add_cmds({
     cmd({"inspect!"},      function (w)    w:toggle_inspector() end),
 })
 
+-- vim: et:sw=4:ts=8:sts=4:tw=80

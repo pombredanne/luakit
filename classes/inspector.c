@@ -36,6 +36,8 @@ inspect_webview_cb(WebKitWebInspector *inspector, WebKitWebView *v, inspector_t 
     if (nret > 0) {
         widget_t *new = luaH_checkwidget(L, -1);
         i->widget = new;
+        // fix attached size
+        gtk_widget_set_size_request(new->widget, -1, 300);
         return WEBKIT_WEB_VIEW(g_object_get_data(G_OBJECT(new->widget), "webview"));
     } else {
         return NULL;
@@ -70,6 +72,34 @@ close_window_cb(WebKitWebInspector *inspector, inspector_t *i)
     return TRUE;
 }
 
+static gboolean
+attach_window_cb(WebKitWebInspector *inspector, inspector_t *i)
+{
+    (void) inspector;
+
+    lua_State *L = globalconf.L;
+    luaH_object_push(L, i->webview->ref);
+    luaH_object_push(L, i->widget->ref);
+    luaH_object_emit_signal(L, -2, "attach-inspector", 1, 0);
+    i->attached = TRUE;
+    lua_pop(L, 1);
+    return TRUE;
+}
+
+static gboolean
+detach_window_cb(WebKitWebInspector *inspector, inspector_t *i)
+{
+    (void) inspector;
+
+    lua_State *L = globalconf.L;
+    luaH_object_push(L, i->webview->ref);
+    luaH_object_push(L, i->widget->ref);
+    luaH_object_emit_signal(L, -2, "detach-inspector", 1, 0);
+    i->attached = FALSE;
+    lua_pop(L, 1);
+    return TRUE;
+}
+
 static gint
 luaH_inspector_show(lua_State *L)
 {
@@ -94,6 +124,13 @@ luaH_inspector_is_visible(lua_State *L, inspector_t *i)
 }
 
 static gint
+luaH_inspector_is_attached(lua_State *L, inspector_t *i)
+{
+    lua_pushboolean(L, i->attached);
+    return 1;
+}
+
+static gint
 luaH_inspector_get_widget(lua_State *L, inspector_t *i)
 {
     if (i->widget) {
@@ -113,6 +150,8 @@ luaH_inspector_new(lua_State *L, widget_t *w)
     i->ref = luaH_object_ref(L, -1);
     i->webview = w;
     i->widget = NULL;
+    i->visible = FALSE;
+    i->attached = FALSE;
     WebKitWebView *v = WEBKIT_WEB_VIEW(g_object_get_data(G_OBJECT(w->widget), "webview"));
     i->inspector = webkit_web_view_get_inspector(v);
 
@@ -121,6 +160,8 @@ luaH_inspector_new(lua_State *L, widget_t *w)
       "signal::inspect-web-view",            G_CALLBACK(inspect_webview_cb),   i,
       "signal::show-window",                 G_CALLBACK(show_window_cb),       i,
       "signal::close-window",                G_CALLBACK(close_window_cb),      i,
+      "signal::attach-window",               G_CALLBACK(attach_window_cb),     i,
+      "signal::detach-window",               G_CALLBACK(detach_window_cb),     i,
       NULL);
 
     return i;
@@ -156,6 +197,10 @@ inspector_class_setup(lua_State *L)
     luaH_class_add_property(&inspector_class, L_TK_WIDGET,
                             (lua_class_propfunc_t) NULL,
                             (lua_class_propfunc_t) luaH_inspector_get_widget,
+                            (lua_class_propfunc_t) NULL);
+    luaH_class_add_property(&inspector_class, L_TK_ATTACHED,
+                            (lua_class_propfunc_t) NULL,
+                            (lua_class_propfunc_t) luaH_inspector_is_attached,
                             (lua_class_propfunc_t) NULL);
     luaH_class_add_property(&inspector_class, L_TK_VISIBLE,
                             (lua_class_propfunc_t) NULL,

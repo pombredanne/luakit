@@ -34,6 +34,7 @@ typedef struct
     widget_t* widget;
     gpointer ref;
     gboolean visible;
+    gboolean attached;
 } inspector_t;
 
 void inspector_class_setup(lua_State *);
