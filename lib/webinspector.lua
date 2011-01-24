@@ -3,8 +3,6 @@
 -- (C) 2010 Fabian Streitel <karottenreibe@gmail.com>  --
 ---------------------------------------------------------
 
-print("foo")
-
 -- Register signal handlers and enable inspector.
 webview.init_funcs.inspector = function (view, w)
     view:set_prop("enable-developer-extras", true)

@@ -27,7 +27,6 @@ LUA_OBJECT_FUNCS(inspector_class, inspector_t, inspector)
 static widget_t *
 inspector_get_widget(inspector_t *i)
 {
-    printf("widget\n");
     WebKitWebView *inspector_view = webkit_web_inspector_get_web_view(i->inspector);
     if (inspector_view) {
         return g_object_get_data(G_OBJECT(inspector_view), "lua_widget");
@@ -39,7 +38,6 @@ inspector_get_widget(inspector_t *i)
 static WebKitWebView*
 inspect_webview_cb(WebKitWebInspector *inspector, WebKitWebView *v, inspector_t *i)
 {
-    printf("inspect\n");
     (void) inspector;
     (void) v;
 
@@ -57,12 +55,11 @@ inspect_webview_cb(WebKitWebInspector *inspector, WebKitWebView *v, inspector_t 
 static gboolean
 show_window_cb(WebKitWebInspector *inspector, inspector_t *i)
 {
-    printf("window\n");
     (void) inspector;
 
     lua_State *L = globalconf.L;
     luaH_object_push(L, i->webview->ref);
-    gint nret = luaH_object_emit_signal(L, -1, "inspect-web-view", 0, 1);
+    gint nret = luaH_object_emit_signal(L, -1, "show-inspector", 0, 1);
     if (nret > 0 && luaH_checkboolean(L, -1)) {
         return TRUE;
     }
@@ -72,7 +69,6 @@ show_window_cb(WebKitWebInspector *inspector, inspector_t *i)
 static gint
 luaH_inspector_show(lua_State *L)
 {
-    printf("show\n");
     inspector_t *i = luaH_checkudata(L, 1, &inspector_class);
     webkit_web_inspector_show(i->inspector);
     return 0;
