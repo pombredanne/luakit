@@ -7,6 +7,17 @@ local windows = setmetatable({}, {__mode = "k"})
 
 -- Register signal handlers and enable inspector.
 webview.init_funcs.inspector = function (view, w)
+    local switcher = function (_, v)
+        local iview = view.inspector.widget
+        local win = windows[iview]
+        if view == v and v.inspector.visible then
+            if win then win:show() end
+            if iview then iview:show() end
+        else
+            if win then win:hide() end
+            if iview then iview:hide() end
+        end
+    end
     view:set_prop("enable-developer-extras", true)
     view:add_signal("inspect-web-view", function ()
         local win = widget{type="window"}
@@ -16,12 +27,13 @@ webview.init_funcs.inspector = function (view, w)
         return iview
     end)
     view:add_signal("show-inspector", function (_, iview)
-        local win = windows[iview]
-        if win then
-            win:show()
+        if not view.inspector.visible then
+            windows[iview]:show()
+            w.tabs:add_signal("switch-page", switcher)
         end
     end)
     view:add_signal("close-inspector", function (_, iview)
+        w.tabs:remove_signal("switch-page", switcher)
         local win = windows[iview]
         if view.inspector.attached then
             w.layout:remove(iview)
@@ -33,12 +45,10 @@ webview.init_funcs.inspector = function (view, w)
     end)
     view:add_signal("attach-inspector", function (_, iview)
         local win = windows[iview]
-        if win then
-            win:remove(iview)
-            w.layout:pack_start(iview, true, true, 0)
-            windows[iview] = nil
-            win:destroy()
-        end
+        win:remove(iview)
+        w.layout:pack_end(iview, false, false, 0)
+        windows[iview] = nil
+        win:destroy()
     end)
     view:add_signal("detach-inspector", function (_, iview)
         local win = widget{type="window"}

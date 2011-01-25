@@ -68,6 +68,7 @@ close_window_cb(WebKitWebInspector *inspector, inspector_t *i)
     luaH_object_push(L, i->widget->ref);
     luaH_object_emit_signal(L, -2, "close-inspector", 1, 0);
     i->visible = FALSE;
+    i->attached = FALSE;
     lua_pop(L, 1);
     return TRUE;
 }
