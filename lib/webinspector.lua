@@ -20,15 +20,11 @@ webview.init_funcs.inspector = function (view, w)
     end
     view:set_prop("enable-developer-extras", true)
     view:add_signal("inspect-web-view", function ()
-        local win = widget{type="window"}
-        local iview = widget{type="webview"}
-        win:set_child(iview)
-        windows[iview] = win
-        return iview
+        return widget{type="webview"}
     end)
     view:add_signal("show-inspector", function (_, iview)
         if not view.inspector.visible then
-            windows[iview]:show()
+            iview:eval_js("WebInspector.toggleAttach();", "(webinspector.lua)")
             w.tabs:add_signal("switch-page", switcher)
         end
     end)
@@ -38,17 +34,15 @@ webview.init_funcs.inspector = function (view, w)
         if view.inspector.attached then
             w.layout:remove(iview)
         end
-        if win then
-            win:destroy()
-        end
+        if win then win:destroy() end
         windows[iview] = nil
     end)
     view:add_signal("attach-inspector", function (_, iview)
         local win = windows[iview]
-        win:remove(iview)
+        if win then win:remove(iview) end
         w.layout:pack_end(iview, false, false, 0)
         windows[iview] = nil
-        win:destroy()
+        if win then win:destroy() end
     end)
     view:add_signal("detach-inspector", function (_, iview)
         local win = widget{type="window"}
