@@ -23,6 +23,7 @@
 #include "luah.h"
 #include "widgets/common.h"
 #include "classes/download.h"
+#include "classes/inspector.h"
 #include <JavaScriptCore/JavaScript.h>
 #include <webkit/webkit.h>
 #include <libsoup/soup.h>
@@ -62,6 +63,7 @@ typedef union {
     gdouble   d;
     gfloat    f;
     gint      i;
+    gpointer  p;
 } temp_value_t;
 
 GHashTable *properties = NULL;
@@ -1147,6 +1149,11 @@ luaH_webview_index(lua_State *L, luakit_token_t token)
         lua_pushstring(L, tmp.c);
         return 1;
 
+      case L_TK_INSPECTOR:
+        tmp.p = g_object_get_data(G_OBJECT(w->widget), "inspector");
+        luaH_object_push(L, ((inspector_t *)tmp.p)->ref);
+        return 1;
+
       case L_TK_HISTORY:
         return luaH_webview_push_history(L, WEBKIT_WEB_VIEW(view));
 
@@ -1397,6 +1404,8 @@ webview_destructor(widget_t *w)
     g_ptr_array_remove(all_views, w);
     GtkWidget *view = g_object_get_data(G_OBJECT(w->widget), "webview");
     gtk_widget_destroy(GTK_WIDGET(view));
+    inspector_t *i = g_object_get_data(G_OBJECT(w->widget), "inspector");
+    luaH_inspector_destroy(globalconf.L, i);
     gtk_widget_destroy(GTK_WIDGET(w->widget));
 }
 
@@ -1439,6 +1448,7 @@ widget_webview(widget_t *w)
     w->widget = gtk_scrolled_window_new(NULL, NULL);
     g_object_set_data(G_OBJECT(w->widget), "lua_widget", w);
     g_object_set_data(G_OBJECT(w->widget), "webview", view);
+    g_object_set_data(G_OBJECT(w->widget), "inspector", luaH_inspector_new(globalconf.L, w));
     gtk_container_add(GTK_CONTAINER(w->widget), view);
 
     /* set initial scrollbars state */
