@@ -1,3 +1,4 @@
+add_id
 append
 atindex
 attached
@@ -25,6 +26,7 @@ execpath
 fg
 focus
 font
+frames
 get_alignment
 get_child
 get_children
@@ -44,11 +46,13 @@ history
 homogeneous
 hovered_uri
 icon
+get_id
 indexof
 insert
 inspector
 install_path
 interval
+is_plugged
 label
 loading
 loading_chrome
@@ -87,6 +91,7 @@ show_border
 show_frame
 show_scrollbars
 show_tabs
+socket
 spacing
 spawn
 spawn_sync
