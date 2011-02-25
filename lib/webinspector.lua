@@ -18,7 +18,7 @@ webview.init_funcs.inspector = function (view, w)
             if iview then iview:hide() end
         end
     end
-    view:set_prop("enable-developer-extras", true)
+    view:set_property("enable-developer-extras", true)
     view:add_signal("inspect-web-view", function ()
         return widget{type="webview"}
     end)
