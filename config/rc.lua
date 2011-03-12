@@ -90,6 +90,7 @@ require "taborder"
 
 -- Save web history
 require "history"
+require "history_chrome"
 
 require "follow_selected"
 require "go_input"
