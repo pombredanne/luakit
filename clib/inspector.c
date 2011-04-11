@@ -19,7 +19,7 @@
  */
 
 #include "globalconf.h"
-#include "classes/inspector.h"
+#include "clib/inspector.h"
 
 static lua_class_t inspector_class;
 LUA_OBJECT_FUNCS(inspector_class, inspector_t, inspector)

@@ -1,7 +1,8 @@
 /*
- * inspector.h - WebKitWebInspector wrapper header
+ * clib/download.h - WebKitDownload wrapper header
  *
- * Copyright © 2009 Julien Danjou <julien@danjou.info>
+ * Copyright © 2011 Fabian Streitel <karottenreibe@gmail.com>
+ * Copyright © 2011 Mason Larobina <mason.larobina@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,28 +20,15 @@
  *
  */
 
-#ifndef LUAKIT_CLASSES_INSPECTOR_H
-#define LUAKIT_CLASSES_INSPECTOR_H
+#ifndef LUAKIT_CLIB_DOWNLOAD_H
+#define LUAKIT_CLIB_DOWNLOAD_H
 
 #include <lua.h>
-#include <webkit/webkit.h>
-#include "classes/widget.h"
+#include <webkit/webkitdownload.h>
 
-typedef struct
-{
-    LUA_OBJECT_HEADER
-    WebKitWebInspector* inspector;
-    widget_t* webview;
-    widget_t* widget;
-    gpointer ref;
-    gboolean visible;
-    gboolean attached;
-} inspector_t;
-
-void inspector_class_setup(lua_State *);
-inspector_t* luaH_inspector_new(lua_State *, widget_t *);
-void luaH_inspector_destroy(lua_State *, inspector_t *);
+void download_class_setup(lua_State*);
+gint luaH_download_push(lua_State*, WebKitDownload*);
 
 #endif
 
-// vim: filetype=c:expandtab:shiftwidth=4:tabstop=8:softtabstop=4:textwidth=80
+// vim: ft=c:et:sw=4:ts=8:sts=4:tw=80
