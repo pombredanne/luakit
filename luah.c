@@ -315,7 +315,6 @@ luaH_isloop(lua_State *L, gint idx)
     return !ret;
 }
 
-
 static gint
 luaH_panic(lua_State *L)
 {
