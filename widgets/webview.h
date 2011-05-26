@@ -35,3 +35,5 @@ typedef struct {
 
 #define luaH_checkwvdata(L, udx) ((webview_data_t*)(luaH_checkwebview(L, udx)->data))
 
+widget_t* luaH_checkwebview(lua_State *L, gint udx);
+
