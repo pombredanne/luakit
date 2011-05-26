@@ -29,23 +29,7 @@
 #include "clib/soup/soup.h"
 #include "common/property.h"
 #include "luah.h"
-
-typedef struct {
-    /** The parent widget_t struct */
-    widget_t *widget;
-    /** The webview widget */
-    WebKitWebView *view;
-    /** The GtkScrolledWindow for the webview widget */
-    GtkScrolledWindow *win;
-    /** Current webview uri */
-    gchar *uri;
-    /** Currently hovered uri */
-    gchar *hover;
-    /** Scrollbar hide signal id */
-    gulong hide_id;
-} webview_data_t;
-
-#define luaH_checkwvdata(L, udx) ((webview_data_t*)(luaH_checkwebview(L, udx)->data))
+#include "widgets/webview.h"
 
 GHashTable *frames_by_view = NULL;
 
