@@ -31,6 +31,8 @@
 #include "luah.h"
 #include "widgets/webview.h"
 
+#define FRAME_DESTROY_CB_KEY "dummy-destroy-notify"
+
 static struct {
     GSList *refs;
     GSList *items;
@@ -436,8 +438,8 @@ mime_type_decision_cb(WebKitWebView *v, WebKitWebFrame *f,
 static void
 frame_destroyed_cb(frame_destroy_callback_t *st)
 {
-    gpointer hash = st->data->frames
     /* the view might be destroyed before the frames */
+    gpointer hash = st->data->frames;
     if (hash)
         g_hash_table_remove(hash, st->frame);
     g_slice_free(frame_destroy_callback_t, st);
@@ -446,15 +448,18 @@ frame_destroyed_cb(frame_destroy_callback_t *st)
 static void
 document_load_finished_cb(WebKitWebView *v, WebKitWebFrame *f, widget_t *w)
 {
-    (void) w;
+    (void) v;
     /* add a bogus property to the frame so we get notified when it's destroyed */
     frame_destroy_callback_t *st = g_slice_new(frame_destroy_callback_t);
     webview_data_t *d = (webview_data_t*)w->data;
     st->data = d;
     st->frame = f;
-    g_object_set_data_full(G_OBJECT(f), "dummy-destroy-notify", st,
-            (GDestroyNotify)frame_destroyed_cb);
-    g_hash_table_insert(d->frames, f, NULL);
+    /* don't insert while the view is being destroyed */
+    if (d->frames) {
+        g_object_set_data_full(G_OBJECT(f), FRAME_DESTROY_CB_KEY, st,
+                (GDestroyNotify)frame_destroyed_cb);
+        g_hash_table_insert(d->frames, f, NULL);
+    }
 }
 
 static gboolean
@@ -1249,13 +1254,28 @@ populate_popup_cb(WebKitWebView *v, GtkMenu *menu, widget_t *w)
 }
 
 static void
+frame_destructor(gpointer f, gpointer v, gpointer data)
+{
+    (void) v;
+    (void) data;
+
+    /* ensure frame_destroyed_cb isn't called */
+    g_object_steal_data(G_OBJECT(f), FRAME_DESTROY_CB_KEY);
+}
+
+static void
 webview_destructor(widget_t *w)
 {
     webview_data_t *d = w->data;
     g_ptr_array_remove(globalconf.webviews, w);
+    /* destroy frames before webview, else frame_destroyed_cb will be called
+     * after deallocation, causing segfaults */
+    gpointer frames = d->frames;
+    d->frames = NULL;
+    g_hash_table_foreach(frames, frame_destructor, NULL);
+    g_hash_table_destroy(frames);
     gtk_widget_destroy(GTK_WIDGET(d->view));
     gtk_widget_destroy(GTK_WIDGET(d->win));
-    g_hash_table_destroy(d->frames)
     g_free(d->uri);
     g_free(d->hover);
     g_slice_free(webview_data_t, d);
