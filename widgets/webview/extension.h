@@ -34,12 +34,6 @@ struct _webview_extension_t;
 /** Extension for the webview widget */
 typedef struct _webview_extension_t {
     /**
-     * Extension initialization function
-     *
-     * Called from the webview constructor.
-     */
-    void (*constructor)(struct _webview_extension_t *, webview_data_t *);
-    /**
      * Extension destruction function
      *
      * Called from the webview destructor.

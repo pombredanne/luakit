@@ -40,11 +40,6 @@ init_extensions(webview_data_t *d)
 {
     d->extensions = g_ptr_array_new();
     /** add new extensions here */
-
-    for (guint i = 0; i < d->extensions->len; i += 1) {
-        webview_extension_t *e = g_ptr_array_index(d->extensions, i);
-        e->constructor(e, d);
-    }
 }
 
 static struct {
