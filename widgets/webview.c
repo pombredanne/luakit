@@ -41,7 +41,7 @@ init_extensions(webview_data_t *d)
     d->extensions = g_ptr_array_new();
     /** add new extensions here */
 
-    for (int i = 0; i < d->extensions->len; i += 1) {
+    for (guint i = 0; i < d->extensions->len; i += 1) {
         webview_extension_t *e = g_ptr_array_index(d->extensions, i);
         e->constructor(e, d);
     }
@@ -1024,8 +1024,8 @@ luaH_webview_index(lua_State *L, luakit_token_t token)
     }
 
     /* let extensions handle their tokens */
-    for (int i = 0; i < extensions->len; i += 1) {
-        webview_extension_t *e = g_ptr_array_index(extensions, i);
+    for (guint i = 0; i < d->extensions->len; i += 1) {
+        webview_extension_t *e = g_ptr_array_index(d->extensions, i);
         int ret = e->index(e, L, d, token);
         if (ret != WEBVIEW_EXTENSION_NO_MATCH) {
             return ret;
@@ -1091,8 +1091,8 @@ luaH_webview_newindex(lua_State *L, luakit_token_t token)
     }
 
     /* let extensions handle their tokens */
-    for (int i = 0; i < extensions->len; i += 1) {
-        webview_extension_t *e = g_ptr_array_index(extensions, i);
+    for (guint i = 0; i < d->extensions->len; i += 1) {
+        webview_extension_t *e = g_ptr_array_index(d->extensions, i);
         int ret = e->index(e, L, d, token);
         if (ret != WEBVIEW_EXTENSION_NO_MATCH) {
             return ret;
@@ -1301,8 +1301,8 @@ webview_destructor(widget_t *w)
     webview_data_t *d = w->data;
 
     /* let extensions destroy themselves */
-    for (int i = 0; i < extensions->len; i += 1) {
-        webview_extension_t *e = g_ptr_array_index(extensions, i);
+    for (guint i = 0; i < d->extensions->len; i += 1) {
+        webview_extension_t *e = g_ptr_array_index(d->extensions, i);
         e->destructor(e, d);
     }
 

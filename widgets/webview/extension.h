@@ -29,34 +29,36 @@
  */
 #define WEBVIEW_EXTENSION_NO_MATCH -1
 
+struct _webview_extension_t;
+
 /** Extension for the webview widget */
-typedf struct {
+typedef struct _webview_extension_t {
     /**
      * Extension initialization function
      *
      * Called from the webview constructor.
      */
-    void (*constructor)(webview_extension_t *, webview_data_t *);
+    void (*constructor)(struct _webview_extension_t *, webview_data_t *);
     /**
      * Extension destruction function
      *
      * Called from the webview destructor.
      */
-    void (*destructor)(webview_extension_t *, webview_data_t *);
+    void (*destructor)(struct _webview_extension_t *, webview_data_t *);
     /**
      * Extension for luaH_webview_index
      *
      * @return WEBVIEW_EXTENSION_NO_MATCH if it didn't match and the number of
      *         pushed arguments otherwise.
      */
-    int (*index)(webview_extension_t *, lua_State* L, webview_data_t *, luakit_token_t *);
+    int (*index)(struct _webview_extension_t *, lua_State* L, webview_data_t *, luakit_token_t);
     /**
      * Extension for luaH_webview_newindex
      *
      * @return WEBVIEW_EXTENSION_NO_MATCH if it didn't match and the number of
      *         pushed arguments otherwise.
      */
-    int (*newindex)(webview_extension_t *, lua_State* L, webview_data_t *, luakit_token_t *);
+    int (*newindex)(struct _webview_extension_t *, lua_State* L, webview_data_t *, luakit_token_t);
     /** Custom private data of the extension */
     gpointer data;
 } webview_extension_t;
