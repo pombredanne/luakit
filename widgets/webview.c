@@ -1021,7 +1021,7 @@ luaH_webview_index(lua_State *L, luakit_token_t token)
     /* let extensions handle their tokens */
     for (guint i = 0; i < d->extensions->len; i += 1) {
         webview_extension_t *e = g_ptr_array_index(d->extensions, i);
-        int ret = e->index(e, L, d, token);
+        int ret = e->index(e, d, L, token);
         if (ret != WEBVIEW_EXTENSION_NO_MATCH) {
             return ret;
         }
@@ -1088,7 +1088,7 @@ luaH_webview_newindex(lua_State *L, luakit_token_t token)
     /* let extensions handle their tokens */
     for (guint i = 0; i < d->extensions->len; i += 1) {
         webview_extension_t *e = g_ptr_array_index(d->extensions, i);
-        int ret = e->index(e, L, d, token);
+        int ret = e->newindex(e, d, L, token);
         if (ret != WEBVIEW_EXTENSION_NO_MATCH) {
             return ret;
         }
