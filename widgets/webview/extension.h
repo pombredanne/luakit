@@ -36,27 +36,29 @@ typedf struct {
      *
      * Called from the webview constructor.
      */
-    void (*constructor)(webview_data_t *);
+    void (*constructor)(webview_extension_t *, webview_data_t *);
     /**
      * Extension destruction function
      *
      * Called from the webview destructor.
      */
-    void (*destructor)(webview_data_t *);
+    void (*destructor)(webview_extension_t *, webview_data_t *);
     /**
      * Extension for luaH_webview_index
      *
      * @return WEBVIEW_EXTENSION_NO_MATCH if it didn't match and the number of
      *         pushed arguments otherwise.
      */
-    int (*index)(lua_State* L, webview_data_t *, luakit_token_t *);
+    int (*index)(webview_extension_t *, lua_State* L, webview_data_t *, luakit_token_t *);
     /**
      * Extension for luaH_webview_newindex
      *
      * @return WEBVIEW_EXTENSION_NO_MATCH if it didn't match and the number of
      *         pushed arguments otherwise.
      */
-    int (*newindex)(lua_State* L, webview_data_t *, luakit_token_t *);
+    int (*newindex)(webview_extension_t *, lua_State* L, webview_data_t *, luakit_token_t *);
+    /** Custom private data of the extension */
+    gpointer data;
 } webview_extension_t;
 
 #endif

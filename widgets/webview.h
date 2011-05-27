@@ -36,6 +36,8 @@ typedef struct {
     gulong hide_id;
     /** The webframes of the view */
     GHashTable *frames;
+    /** Array of webview extensions */
+    GPtrArray *extensions;
 } webview_data_t;
 
 #define luaH_checkwvdata(L, udx) ((webview_data_t*)(luaH_checkwebview(L, udx)->data))

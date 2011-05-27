@@ -30,8 +30,22 @@
 #include "common/property.h"
 #include "luah.h"
 #include "widgets/webview.h"
+#include "widgets/webview/extension.h"
 
 #define FRAME_DESTROY_CB_KEY "dummy-destroy-notify"
+
+/** Adds all extensions to the \ref webview_data_t */
+static void
+init_extensions(webview_data_t *d)
+{
+    d->extensions = g_ptr_array_new();
+    /** add new extensions here */
+
+    for (int i = 0; i < d->extensions->len; i += 1) {
+        webview_extension_t *e = g_ptr_array_index(d->extensions, i);
+        e->constructor(e, d);
+    }
+}
 
 static struct {
     GSList *refs;
@@ -1009,6 +1023,15 @@ luaH_webview_index(lua_State *L, luakit_token_t token)
         break;
     }
 
+    /* let extensions handle their tokens */
+    for (int i = 0; i < extensions->len; i += 1) {
+        webview_extension_t *e = g_ptr_array_index(extensions, i);
+        int ret = e->index(e, L, d, token);
+        if (ret != WEBVIEW_EXTENSION_NO_MATCH) {
+            return ret;
+        }
+    }
+
     return 0;
 }
 
@@ -1065,6 +1088,15 @@ luaH_webview_newindex(lua_State *L, luakit_token_t token)
       default:
         warn("unknown property: %s", luaL_checkstring(L, 2));
         return 0;
+    }
+
+    /* let extensions handle their tokens */
+    for (int i = 0; i < extensions->len; i += 1) {
+        webview_extension_t *e = g_ptr_array_index(extensions, i);
+        int ret = e->index(e, L, d, token);
+        if (ret != WEBVIEW_EXTENSION_NO_MATCH) {
+            return ret;
+        }
     }
 
     return luaH_object_emit_property_signal(L, 1);
@@ -1267,6 +1299,13 @@ static void
 webview_destructor(widget_t *w)
 {
     webview_data_t *d = w->data;
+
+    /* let extensions destroy themselves */
+    for (int i = 0; i < extensions->len; i += 1) {
+        webview_extension_t *e = g_ptr_array_index(extensions, i);
+        e->destructor(e, d);
+    }
+
     g_ptr_array_remove(globalconf.webviews, w);
     /* destroy frames before webview, else frame_destroyed_cb will be called
      * after deallocation, causing segfaults */
@@ -1342,6 +1381,9 @@ widget_webview(widget_t *w)
       "signal::resource-request-starting",            G_CALLBACK(resource_request_starting_cb), w,
       "signal::document-load-finished",               G_CALLBACK(document_load_finished_cb),    w,
       NULL);
+
+    /* let extensions add additional functionality */
+    init_extensions(d);
 
     /* show widgets */
     gtk_widget_show(GTK_WIDGET(d->view));
