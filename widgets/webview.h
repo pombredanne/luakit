@@ -18,6 +18,9 @@
  *
  */
 
+#ifndef LUAKIT_WIDGETS_WEBVIEW_H
+#define LUAKIT_WIDGETS_WEBVIEW_H
+
 typedef struct {
     /** The parent widget_t struct */
     widget_t *widget;
@@ -39,3 +42,6 @@ typedef struct {
 
 widget_t* luaH_checkwebview(lua_State *L, gint udx);
 
+#endif
+
+// vim: ft=c:et:sw=4:ts=8:sts=4:tw=80
