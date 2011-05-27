@@ -21,6 +21,10 @@
 #ifndef LUAKIT_WIDGETS_WEBVIEW_H
 #define LUAKIT_WIDGETS_WEBVIEW_H
 
+#include <lua.h>
+#include <webkit/webkit.h>
+#include "widgets/common.h"
+
 typedef struct {
     /** The parent widget_t struct */
     widget_t *widget;

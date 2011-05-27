@@ -19,12 +19,10 @@
  */
 
 #include <JavaScriptCore/JavaScript.h>
-#include <webkit/webkit.h>
 #include <libsoup/soup-message.h>
 #include <math.h>
 
 #include "globalconf.h"
-#include "widgets/common.h"
 #include "clib/download.h"
 #include "clib/soup/soup.h"
 #include "common/property.h"
