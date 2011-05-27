@@ -30,27 +30,9 @@
 #include "clib/soup/soup.h"
 #include "common/property.h"
 #include "luah.h"
+#include "widgets/webview.h"
 
-typedef struct {
-    /** The parent widget_t struct */
-    widget_t *widget;
-    /** The webview widget */
-    WebKitWebView *view;
-    /** The GtkScrolledWindow for the webview widget */
-    GtkScrolledWindow *win;
-    /** Current webview uri */
-    gchar *uri;
-    /** Currently hovered uri */
-    gchar *hover;
-    /** Scrollbar hide signal id */
-    gulong hide_id;
-    /** The webinspector widget */
-    inspector_t *inspector;
-} webview_data_t;
-
-#define luaH_checkwvdata(L, udx) ((webview_data_t*)(luaH_checkwebview(L, udx)->data))
-
-GHashTable *frames_by_view = NULL;
+#define FRAME_DESTROY_CB_KEY "dummy-destroy-notify"
 
 static struct {
     GSList *refs;
@@ -58,7 +40,7 @@ static struct {
 } last_popup = { NULL, NULL };
 
 typedef struct {
-    WebKitWebView *view;
+    webview_data_t *data;
     WebKitWebFrame *frame;
 } frame_destroy_callback_t;
 
@@ -378,7 +360,7 @@ update_uri(widget_t *w, const gchar *uri)
 static gint
 luaH_webview_push_frames(lua_State *L, webview_data_t *d)
 {
-    GHashTable *frames = g_hash_table_lookup(frames_by_view, d->view);
+    GHashTable *frames = d->frames;
     lua_createtable(L, g_hash_table_size(frames), 0);
     gint i = 1, tidx = lua_gettop(L);
     gpointer frame;
@@ -457,8 +439,8 @@ mime_type_decision_cb(WebKitWebView *v, WebKitWebFrame *f,
 static void
 frame_destroyed_cb(frame_destroy_callback_t *st)
 {
-    gpointer hash = g_hash_table_lookup(frames_by_view, st->view);
     /* the view might be destroyed before the frames */
+    gpointer hash = st->data->frames;
     if (hash)
         g_hash_table_remove(hash, st->frame);
     g_slice_free(frame_destroy_callback_t, st);
@@ -467,15 +449,18 @@ frame_destroyed_cb(frame_destroy_callback_t *st)
 static void
 document_load_finished_cb(WebKitWebView *v, WebKitWebFrame *f, widget_t *w)
 {
-    (void) w;
+    (void) v;
     /* add a bogus property to the frame so we get notified when it's destroyed */
     frame_destroy_callback_t *st = g_slice_new(frame_destroy_callback_t);
-    st->view = v;
+    webview_data_t *d = (webview_data_t*)w->data;
+    st->data = d;
     st->frame = f;
-    g_object_set_data_full(G_OBJECT(f), "dummy-destroy-notify", st,
-            (GDestroyNotify)frame_destroyed_cb);
-    GHashTable *frames = g_hash_table_lookup(frames_by_view, v);
-    g_hash_table_insert(frames, f, NULL);
+    /* don't insert while the view is being destroyed */
+    if (d->frames) {
+        g_object_set_data_full(G_OBJECT(f), FRAME_DESTROY_CB_KEY, st,
+                (GDestroyNotify)frame_destroyed_cb);
+        g_hash_table_insert(d->frames, f, NULL);
+    }
 }
 
 static gboolean
@@ -1274,15 +1259,30 @@ populate_popup_cb(WebKitWebView *v, GtkMenu *menu, widget_t *w)
 }
 
 static void
+frame_destructor(gpointer f, gpointer v, gpointer data)
+{
+    (void) v;
+    (void) data;
+
+    /* ensure frame_destroyed_cb isn't called */
+    g_object_steal_data(G_OBJECT(f), FRAME_DESTROY_CB_KEY);
+}
+
+static void
 webview_destructor(widget_t *w)
 {
     webview_data_t *d = w->data;
     g_ptr_array_remove(globalconf.webviews, w);
     inspector_t *i = d->inspector;
     luaH_inspector_destroy(globalconf.L, i);
+    /* destroy frames before webview, else frame_destroyed_cb will be called
+     * after deallocation, causing segfaults */
+    gpointer frames = d->frames;
+    d->frames = NULL;
+    g_hash_table_foreach(frames, frame_destructor, NULL);
+    g_hash_table_destroy(frames);
     gtk_widget_destroy(GTK_WIDGET(d->view));
     gtk_widget_destroy(GTK_WIDGET(d->win));
-    g_hash_table_remove(frames_by_view, d->view);
     g_free(d->uri);
     g_free(d->hover);
     g_slice_free(webview_data_t, d);
@@ -1308,15 +1308,14 @@ widget_webview(widget_t *w)
     if (!globalconf.webviews)
         globalconf.webviews = g_ptr_array_new();
 
-    if (!frames_by_view)
-        frames_by_view = g_hash_table_new_full(g_direct_hash, g_direct_equal,
-                NULL, (GDestroyNotify) g_hash_table_destroy);
-
     /* create widgets */
     d->view = WEBKIT_WEB_VIEW(webkit_web_view_new());
     d->win = GTK_SCROLLED_WINDOW(gtk_scrolled_window_new(NULL, NULL));
     d->inspector = luaH_inspector_new(globalconf.L, w);
     w->widget = GTK_WIDGET(d->win);
+
+    /* create frame table */
+    d->frames = g_hash_table_new(g_direct_hash, g_direct_equal);
 
     /* set gobject property to give other widgets a pointer to our webview */
     g_object_set_data(G_OBJECT(w->widget), "lua_widget", w);
@@ -1329,9 +1328,6 @@ widget_webview(widget_t *w)
 
     /* insert data into global tables and arrays */
     g_ptr_array_add(globalconf.webviews, w);
-
-    g_hash_table_insert(frames_by_view, d->view,
-            g_hash_table_new(g_direct_hash, g_direct_equal));
 
     /* connect webview signals */
     g_object_connect(G_OBJECT(d->view),
