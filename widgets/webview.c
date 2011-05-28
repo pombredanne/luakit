@@ -18,31 +18,34 @@
  *
  */
 
-#include <JavaScriptCore/JavaScript.h>
-#include <webkit/webkit.h>
 #include <libsoup/soup-message.h>
 #include <math.h>
 
 #include "globalconf.h"
-#include "widgets/common.h"
 #include "clib/inspector.h"
 #include "clib/download.h"
 #include "clib/soup/soup.h"
 #include "common/property.h"
 #include "luah.h"
 #include "widgets/webview.h"
+#include "widgets/webview/extension.h"
+#include "widgets/webview/frames.h"
+#include "widgets/webview/javascript.h"
 
-#define FRAME_DESTROY_CB_KEY "dummy-destroy-notify"
+/** Adds all extensions to the \ref webview_data_t */
+static void
+init_extensions(webview_data_t *d)
+{
+    d->extensions = g_ptr_array_new();
+    /** add new extensions here */
+    g_ptr_array_add(d->extensions, frames_extension_new(d));
+    g_ptr_array_add(d->extensions, javascript_extension_new(d));
+}
 
 static struct {
     GSList *refs;
     GSList *items;
 } last_popup = { NULL, NULL };
-
-typedef struct {
-    webview_data_t *data;
-    WebKitWebFrame *frame;
-} frame_destroy_callback_t;
 
 GHashTable *webview_properties = NULL;
 property_t webview_properties_table[] = {
@@ -109,142 +112,6 @@ luaH_checkwebview(lua_State *L, gint udx)
     return w;
 }
 
-static JSValueRef
-webview_registered_function_callback(JSContextRef context, JSObjectRef fun,
-        JSObjectRef thisObject, size_t argumentCount,
-        const JSValueRef *arguments, JSValueRef *exception)
-{
-    (void) thisObject;
-    (void) argumentCount;
-    (void) arguments;
-
-    lua_State *L = globalconf.L;
-    gpointer ref = JSObjectGetPrivate(fun);
-    // get function
-    luaH_object_push(L, ref);
-    // call function
-    gint ret = lua_pcall(L, 0, 0, 0);
-    // handle errors
-    if (ret != 0) {
-        const gchar *exn_cstring = luaL_checkstring(L, -1);
-        lua_pop(L, 1);
-        JSStringRef exn_js_string = JSStringCreateWithUTF8CString(exn_cstring);
-        JSValueRef exn_js_value = JSValueMakeString(context, exn_js_string);
-        *exception = JSValueToObject(context, exn_js_value, NULL);
-        JSStringRelease(exn_js_string);
-    }
-    return JSValueMakeUndefined(context);
-}
-
-static void
-webview_collect_registered_function(JSObjectRef obj)
-{
-    lua_State *L = globalconf.L;
-    gpointer ref = JSObjectGetPrivate(obj);
-    luaH_object_unref(L, ref);
-}
-
-static void
-webview_register_function(WebKitWebFrame *frame, const gchar *name, gpointer ref)
-{
-    JSGlobalContextRef context = webkit_web_frame_get_global_context(frame);
-    JSStringRef js_name = JSStringCreateWithUTF8CString(name);
-    // prepare callback function
-    JSClassDefinition def = kJSClassDefinitionEmpty;
-    def.callAsFunction = webview_registered_function_callback;
-    def.className = g_strdup(name);
-    def.finalize = webview_collect_registered_function;
-    JSClassRef class = JSClassCreate(&def);
-    JSObjectRef fun = JSObjectMake(context, class, ref);
-    // register with global object
-    JSObjectRef global = JSContextGetGlobalObject(context);
-    JSObjectSetProperty(context, global, js_name, fun, kJSPropertyAttributeDontDelete | kJSPropertyAttributeReadOnly, NULL);
-    // release strings
-    JSStringRelease(js_name);
-    JSClassRelease(class);
-}
-
-static const gchar*
-webview_eval_js(WebKitWebFrame *frame, const gchar *script, const gchar *file)
-{
-    JSGlobalContextRef context;
-    JSObjectRef globalobject;
-    JSStringRef js_file;
-    JSStringRef js_script;
-    JSValueRef js_result;
-    JSValueRef js_exc = NULL;
-    JSStringRef js_result_string;
-    GString *result = g_string_new(NULL);
-    size_t js_result_size;
-
-    context = webkit_web_frame_get_global_context(frame);
-    globalobject = JSContextGetGlobalObject(context);
-
-    /* evaluate the script and get return value*/
-    js_script = JSStringCreateWithUTF8CString(script);
-    js_file = JSStringCreateWithUTF8CString(file);
-    js_result = JSEvaluateScript(context, js_script, globalobject, js_file, 0, &js_exc);
-    if (js_result && !JSValueIsUndefined(context, js_result)) {
-        js_result_string = JSValueToStringCopy(context, js_result, NULL);
-        js_result_size = JSStringGetMaximumUTF8CStringSize(js_result_string);
-
-        if (js_result_size) {
-            gchar js_result_utf8[js_result_size];
-            JSStringGetUTF8CString(js_result_string, js_result_utf8, js_result_size);
-            g_string_assign(result, js_result_utf8);
-        }
-
-        JSStringRelease(js_result_string);
-    }
-    else if (js_exc) {
-        size_t size;
-        JSStringRef prop, val;
-        JSObjectRef exc = JSValueToObject(context, js_exc, NULL);
-
-        g_printf("Exception occured while executing script:\n");
-
-        /* Print file */
-        prop = JSStringCreateWithUTF8CString("sourceURL");
-        val = JSValueToStringCopy(context, JSObjectGetProperty(context, exc, prop, NULL), NULL);
-        size = JSStringGetMaximumUTF8CStringSize(val);
-        if(size) {
-            gchar cstr[size];
-            JSStringGetUTF8CString(val, cstr, size);
-            g_printf("At %s", cstr);
-        }
-        JSStringRelease(prop);
-        JSStringRelease(val);
-
-        /* Print line */
-        prop = JSStringCreateWithUTF8CString("line");
-        val = JSValueToStringCopy(context, JSObjectGetProperty(context, exc, prop, NULL), NULL);
-        size = JSStringGetMaximumUTF8CStringSize(val);
-        if(size) {
-            gchar cstr[size];
-            JSStringGetUTF8CString(val, cstr, size);
-            g_printf(":%s: ", cstr);
-        }
-        JSStringRelease(prop);
-        JSStringRelease(val);
-
-        /* Print message */
-        val = JSValueToStringCopy(context, exc, NULL);
-        size = JSStringGetMaximumUTF8CStringSize(val);
-        if(size) {
-            gchar cstr[size];
-            JSStringGetUTF8CString(val, cstr, size);
-            g_printf("%s\n", cstr);
-        }
-        JSStringRelease(val);
-    }
-
-    /* cleanup */
-    JSStringRelease(js_script);
-    JSStringRelease(js_file);
-
-    return g_string_free(result, FALSE);
-}
-
 static gint
 luaH_webview_get_property(lua_State *L)
 {
@@ -268,57 +135,6 @@ luaH_webview_load_string(lua_State *L)
     WebKitWebFrame *frame = webkit_web_view_get_main_frame(d->view);
     webkit_web_frame_load_alternate_string(frame, string, base_uri, base_uri);
     return 0;
-}
-
-static gint
-luaH_webview_register_function(lua_State *L)
-{
-    WebKitWebFrame *frame = NULL;
-    webview_data_t *d = luaH_checkwvdata(L, 1);
-    const gchar *name = luaL_checkstring(L, 2);
-
-    /* get lua callback function */
-    luaH_checkfunction(L, 3);
-    lua_pushvalue(L, 3);
-    gpointer ref = luaH_object_ref(L, -1);
-
-    /* Check if function should be registered on currently focused frame */
-    if (lua_gettop(L) >= 4 && luaH_checkboolean(L, 4))
-        frame = webkit_web_view_get_focused_frame(d->view);
-
-    /* Fall back on main frame */
-    if (!frame)
-        frame = webkit_web_view_get_main_frame(d->view);
-
-    /* register function */
-    webview_register_function(frame, name, ref);
-    return 0;
-}
-
-static gint
-luaH_webview_eval_js(lua_State *L)
-{
-    WebKitWebFrame *frame = NULL;
-    webview_data_t *d = luaH_checkwvdata(L, 1);
-    const gchar *script = luaL_checkstring(L, 2);
-    const gchar *filename = luaL_checkstring(L, 3);
-
-    /* Check if js should be run on currently focused frame */
-    if (lua_gettop(L) >= 4) {
-        if (lua_islightuserdata(L, 4))
-            frame = lua_touserdata(L, 4);
-        else if (lua_toboolean(L, 4))
-            frame = webkit_web_view_get_focused_frame(d->view);
-    }
-
-    /* Fall back on main frame */
-    if (!frame)
-        frame = webkit_web_view_get_main_frame(d->view);
-
-    /* evaluate javascript script and push return result onto lua stack */
-    const gchar *result = webview_eval_js(frame, script, filename);
-    lua_pushstring(L, result);
-    return 1;
 }
 
 static void
@@ -355,22 +171,6 @@ update_uri(widget_t *w, const gchar *uri)
         luaH_object_emit_signal(L, -1, "property::uri", 0, 0);
         lua_pop(L, 1);
     }
-}
-
-static gint
-luaH_webview_push_frames(lua_State *L, webview_data_t *d)
-{
-    GHashTable *frames = d->frames;
-    lua_createtable(L, g_hash_table_size(frames), 0);
-    gint i = 1, tidx = lua_gettop(L);
-    gpointer frame;
-    GHashTableIter iter;
-    g_hash_table_iter_init(&iter, frames);
-    while (g_hash_table_iter_next(&iter, &frame, NULL)) {
-        lua_pushlightuserdata(L, frame);
-        lua_rawseti(L, tidx, i++);
-    }
-    return 1;
 }
 
 static void
@@ -434,33 +234,6 @@ mime_type_decision_cb(WebKitWebView *v, WebKitWebFrame *f,
 
     lua_pop(L, ret + 1);
     return TRUE;
-}
-
-static void
-frame_destroyed_cb(frame_destroy_callback_t *st)
-{
-    /* the view might be destroyed before the frames */
-    gpointer hash = st->data->frames;
-    if (hash)
-        g_hash_table_remove(hash, st->frame);
-    g_slice_free(frame_destroy_callback_t, st);
-}
-
-static void
-document_load_finished_cb(WebKitWebView *v, WebKitWebFrame *f, widget_t *w)
-{
-    (void) v;
-    /* add a bogus property to the frame so we get notified when it's destroyed */
-    frame_destroy_callback_t *st = g_slice_new(frame_destroy_callback_t);
-    webview_data_t *d = (webview_data_t*)w->data;
-    st->data = d;
-    st->frame = f;
-    /* don't insert while the view is being destroyed */
-    if (d->frames) {
-        g_object_set_data_full(G_OBJECT(f), FRAME_DESTROY_CB_KEY, st,
-                (GDestroyNotify)frame_destroyed_cb);
-        g_hash_table_insert(d->frames, f, NULL);
-    }
 }
 
 static gboolean
@@ -984,8 +757,6 @@ luaH_webview_index(lua_State *L, luakit_token_t token)
       PF_CASE(CAN_GO_BACK,          luaH_webview_can_go_back)
       PF_CASE(CAN_GO_FORWARD,       luaH_webview_can_go_forward)
       /* push misc webview methods */
-      PF_CASE(EVAL_JS,              luaH_webview_eval_js)
-      PF_CASE(REGISTER_FUNCTION,    luaH_webview_register_function)
       PF_CASE(LOAD_STRING,          luaH_webview_load_string)
       PF_CASE(LOADING,              luaH_webview_loading)
       PF_CASE(RELOAD,               luaH_webview_reload)
@@ -1000,9 +771,6 @@ luaH_webview_index(lua_State *L, luakit_token_t token)
       PS_CASE(HOVERED_URI,          d->hover)
       PS_CASE(URI,                  d->uri)
 
-      case L_TK_FRAMES:
-        return luaH_webview_push_frames(L, d);
-
       case L_TK_INSPECTOR:
         luaH_object_push(L, d->inspector->ref);
         return 1;
@@ -1012,6 +780,17 @@ luaH_webview_index(lua_State *L, luakit_token_t token)
 
       default:
         break;
+    }
+
+    /* let extensions handle their tokens */
+    for (guint i = 0; i < d->extensions->len; i += 1) {
+        webview_extension_t *e = g_ptr_array_index(d->extensions, i);
+        if (e->index) {
+            int ret = e->index(e, d, L, token);
+            if (ret != WEBVIEW_EXTENSION_NO_MATCH) {
+                return ret;
+            }
+        }
     }
 
     return 0;
@@ -1070,6 +849,17 @@ luaH_webview_newindex(lua_State *L, luakit_token_t token)
       default:
         warn("unknown property: %s", luaL_checkstring(L, 2));
         return 0;
+    }
+
+    /* let extensions handle their tokens */
+    for (guint i = 0; i < d->extensions->len; i += 1) {
+        webview_extension_t *e = g_ptr_array_index(d->extensions, i);
+        if (e->newindex) {
+            int ret = e->newindex(e, d, L, token);
+            if (ret != WEBVIEW_EXTENSION_NO_MATCH) {
+                return ret;
+            }
+        }
     }
 
     return luaH_object_emit_property_signal(L, 1);
@@ -1259,28 +1049,19 @@ populate_popup_cb(WebKitWebView *v, GtkMenu *menu, widget_t *w)
 }
 
 static void
-frame_destructor(gpointer f, gpointer v, gpointer data)
-{
-    (void) v;
-    (void) data;
-
-    /* ensure frame_destroyed_cb isn't called */
-    g_object_steal_data(G_OBJECT(f), FRAME_DESTROY_CB_KEY);
-}
-
-static void
 webview_destructor(widget_t *w)
 {
     webview_data_t *d = w->data;
+
+    /* let extensions destroy themselves */
+    for (guint i = 0; i < d->extensions->len; i += 1) {
+        webview_extension_t *e = g_ptr_array_index(d->extensions, i);
+        e->destructor(e, d);
+    }
+
     g_ptr_array_remove(globalconf.webviews, w);
     inspector_t *i = d->inspector;
     luaH_inspector_destroy(globalconf.L, i);
-    /* destroy frames before webview, else frame_destroyed_cb will be called
-     * after deallocation, causing segfaults */
-    gpointer frames = d->frames;
-    d->frames = NULL;
-    g_hash_table_foreach(frames, frame_destructor, NULL);
-    g_hash_table_destroy(frames);
     gtk_widget_destroy(GTK_WIDGET(d->view));
     gtk_widget_destroy(GTK_WIDGET(d->win));
     g_free(d->uri);
@@ -1314,9 +1095,6 @@ widget_webview(widget_t *w)
     d->inspector = luaH_inspector_new(globalconf.L, w);
     w->widget = GTK_WIDGET(d->win);
 
-    /* create frame table */
-    d->frames = g_hash_table_new(g_direct_hash, g_direct_equal);
-
     /* set gobject property to give other widgets a pointer to our webview */
     g_object_set_data(G_OBJECT(w->widget), "lua_widget", w);
 
@@ -1348,8 +1126,10 @@ widget_webview(widget_t *w)
       "signal::parent-set",                           G_CALLBACK(parent_set_cb),                w,
       "signal::populate-popup",                       G_CALLBACK(populate_popup_cb),            w,
       "signal::resource-request-starting",            G_CALLBACK(resource_request_starting_cb), w,
-      "signal::document-load-finished",               G_CALLBACK(document_load_finished_cb),    w,
       NULL);
+
+    /* let extensions add additional functionality */
+    init_extensions(d);
 
     /* show widgets */
     gtk_widget_show(GTK_WIDGET(d->view));
