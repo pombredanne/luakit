@@ -21,11 +21,13 @@
 
 #include "widgets/webview/frames.h"
 
+/* the data kept by this extension */
 typedef struct {
-    /** The webframes of the webview */
+    /* the webframes of the webview */
     GHashTable *frames;
 } frames_extension_data_t;
 
+/* callback wrapper type for \ref frame_destroyed_cb */
 typedef struct {
     frames_extension_data_t *data;
     WebKitWebFrame *frame;
@@ -33,6 +35,7 @@ typedef struct {
 
 #define FRAME_DESTROY_CB_KEY "dummy-destroy-notify"
 
+/* pushes all webframes from the given \ref frames_extension_data_t to the Lua stack */
 static gint
 luaH_webview_push_frames(lua_State *L, frames_extension_data_t *d)
 {
@@ -49,6 +52,7 @@ luaH_webview_push_frames(lua_State *L, frames_extension_data_t *d)
     return 1;
 }
 
+/* removes the frame from the \ref frames_extension_data_t */
 static void
 frame_destroyed_cb(frame_destroy_callback_t *st)
 {
@@ -59,6 +63,7 @@ frame_destroyed_cb(frame_destroy_callback_t *st)
     g_slice_free(frame_destroy_callback_t, st);
 }
 
+/* adds the frame to the \ref frames_extension_data_t */
 static void
 document_load_finished_cb(WebKitWebView *v, WebKitWebFrame *f, webview_extension_t *e)
 {
@@ -76,6 +81,8 @@ document_load_finished_cb(WebKitWebView *v, WebKitWebFrame *f, webview_extension
     }
 }
 
+/* steals the property that has the destruction callback attached.
+ * This ensures the destructor of the frame is never called. */
 static void
 frame_destructor(gpointer f, gpointer v, gpointer data)
 {
@@ -86,6 +93,7 @@ frame_destructor(gpointer f, gpointer v, gpointer data)
     g_object_steal_data(G_OBJECT(f), FRAME_DESTROY_CB_KEY);
 }
 
+/* safely destroys all frames, the hash table and the extension */
 static void
 frames_extension_destructor(webview_extension_t *e, webview_data_t *wd)
 {
@@ -103,6 +111,7 @@ frames_extension_destructor(webview_extension_t *e, webview_data_t *wd)
     g_slice_free(webview_extension_t, e);
 }
 
+/* registers \c frames as a getter on the webview */
 static int
 frames_extension_index(webview_extension_t *e, webview_data_t *d, lua_State *L, luakit_token_t t)
 {
@@ -119,6 +128,10 @@ frames_extension_index(webview_extension_t *e, webview_data_t *d, lua_State *L, 
     return WEBVIEW_EXTENSION_NO_MATCH;
 }
 
+/**
+ * Creates a new frames extension that handles webframe events and makes them
+ * available to Lua.
+ */
 webview_extension_t *
 frames_extension_new(webview_data_t *wd)
 {
@@ -137,3 +150,4 @@ frames_extension_new(webview_data_t *wd)
     return e;
 }
 
+// vim: ft=c:et:sw=4:ts=8:sts=4:tw=80

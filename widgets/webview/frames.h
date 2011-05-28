@@ -28,3 +28,4 @@ webview_extension_t * frames_extension_new(webview_data_t *);
 
 #endif
 
+// vim: ft=c:et:sw=4:ts=8:sts=4:tw=80

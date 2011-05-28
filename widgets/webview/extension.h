@@ -42,20 +42,20 @@ struct _webview_extension_t {
      */
     void (*destructor)(webview_extension_t *, webview_data_t *);
     /**
-     * Extension for luaH_webview_index
+     * Extension for \ref luaH_webview_index
      *
-     * May be NULL, if not used.
+     * May be \c NULL, if not used.
      *
-     * @return WEBVIEW_EXTENSION_NO_MATCH if it didn't match and the number of
+     * @return \c WEBVIEW_EXTENSION_NO_MATCH if it didn't match and the number of
      *         pushed arguments otherwise.
      */
     int (*index)(webview_extension_t *, webview_data_t *, lua_State* L, luakit_token_t);
     /**
-     * Extension for luaH_webview_newindex
+     * Extension for \ref luaH_webview_newindex
      *
-     * May be NULL, if not used.
+     * May be \c NULL, if not used.
      *
-     * @return WEBVIEW_EXTENSION_NO_MATCH if it didn't match and the number of
+     * @return \c WEBVIEW_EXTENSION_NO_MATCH if it didn't match and the number of
      *         pushed arguments otherwise.
      */
     int (*newindex)(webview_extension_t *, webview_data_t *, lua_State* L, luakit_token_t);
