@@ -31,8 +31,6 @@
 #include "widgets/webview/extension.h"
 #include "widgets/webview/frames.h"
 
-#define FRAME_DESTROY_CB_KEY "dummy-destroy-notify"
-
 /** Adds all extensions to the \ref webview_data_t */
 static void
 init_extensions(webview_data_t *d)
@@ -46,11 +44,6 @@ static struct {
     GSList *refs;
     GSList *items;
 } last_popup = { NULL, NULL };
-
-typedef struct {
-    webview_data_t *data;
-    WebKitWebFrame *frame;
-} frame_destroy_callback_t;
 
 GHashTable *webview_properties = NULL;
 property_t webview_properties_table[] = {
@@ -365,22 +358,6 @@ update_uri(widget_t *w, const gchar *uri)
     }
 }
 
-static gint
-luaH_webview_push_frames(lua_State *L, webview_data_t *d)
-{
-    GHashTable *frames = d->frames;
-    lua_createtable(L, g_hash_table_size(frames), 0);
-    gint i = 1, tidx = lua_gettop(L);
-    gpointer frame;
-    GHashTableIter iter;
-    g_hash_table_iter_init(&iter, frames);
-    while (g_hash_table_iter_next(&iter, &frame, NULL)) {
-        lua_pushlightuserdata(L, frame);
-        lua_rawseti(L, tidx, i++);
-    }
-    return 1;
-}
-
 static void
 notify_load_status_cb(WebKitWebView *v, GParamSpec *ps, widget_t *w)
 {
@@ -442,33 +419,6 @@ mime_type_decision_cb(WebKitWebView *v, WebKitWebFrame *f,
 
     lua_pop(L, ret + 1);
     return TRUE;
-}
-
-static void
-frame_destroyed_cb(frame_destroy_callback_t *st)
-{
-    /* the view might be destroyed before the frames */
-    gpointer hash = st->data->frames;
-    if (hash)
-        g_hash_table_remove(hash, st->frame);
-    g_slice_free(frame_destroy_callback_t, st);
-}
-
-static void
-document_load_finished_cb(WebKitWebView *v, WebKitWebFrame *f, widget_t *w)
-{
-    (void) v;
-    /* add a bogus property to the frame so we get notified when it's destroyed */
-    frame_destroy_callback_t *st = g_slice_new(frame_destroy_callback_t);
-    webview_data_t *d = (webview_data_t*)w->data;
-    st->data = d;
-    st->frame = f;
-    /* don't insert while the view is being destroyed */
-    if (d->frames) {
-        g_object_set_data_full(G_OBJECT(f), FRAME_DESTROY_CB_KEY, st,
-                (GDestroyNotify)frame_destroyed_cb);
-        g_hash_table_insert(d->frames, f, NULL);
-    }
 }
 
 static gboolean
@@ -1008,9 +958,6 @@ luaH_webview_index(lua_State *L, luakit_token_t token)
       PS_CASE(HOVERED_URI,          d->hover)
       PS_CASE(URI,                  d->uri)
 
-      case L_TK_FRAMES:
-        return luaH_webview_push_frames(L, d);
-
       case L_TK_HISTORY:
         return luaH_webview_push_history(L, d->view);
 
@@ -1281,16 +1228,6 @@ populate_popup_cb(WebKitWebView *v, GtkMenu *menu, widget_t *w)
 }
 
 static void
-frame_destructor(gpointer f, gpointer v, gpointer data)
-{
-    (void) v;
-    (void) data;
-
-    /* ensure frame_destroyed_cb isn't called */
-    g_object_steal_data(G_OBJECT(f), FRAME_DESTROY_CB_KEY);
-}
-
-static void
 webview_destructor(widget_t *w)
 {
     webview_data_t *d = w->data;
@@ -1302,12 +1239,6 @@ webview_destructor(widget_t *w)
     }
 
     g_ptr_array_remove(globalconf.webviews, w);
-    /* destroy frames before webview, else frame_destroyed_cb will be called
-     * after deallocation, causing segfaults */
-    gpointer frames = d->frames;
-    d->frames = NULL;
-    g_hash_table_foreach(frames, frame_destructor, NULL);
-    g_hash_table_destroy(frames);
     gtk_widget_destroy(GTK_WIDGET(d->view));
     gtk_widget_destroy(GTK_WIDGET(d->win));
     g_free(d->uri);
@@ -1340,9 +1271,6 @@ widget_webview(widget_t *w)
     d->win = GTK_SCROLLED_WINDOW(gtk_scrolled_window_new(NULL, NULL));
     w->widget = GTK_WIDGET(d->win);
 
-    /* create frame table */
-    d->frames = g_hash_table_new(g_direct_hash, g_direct_equal);
-
     /* set gobject property to give other widgets a pointer to our webview */
     g_object_set_data(G_OBJECT(w->widget), "lua_widget", w);
 
@@ -1374,7 +1302,6 @@ widget_webview(widget_t *w)
       "signal::parent-set",                           G_CALLBACK(parent_set_cb),                w,
       "signal::populate-popup",                       G_CALLBACK(populate_popup_cb),            w,
       "signal::resource-request-starting",            G_CALLBACK(resource_request_starting_cb), w,
-      "signal::document-load-finished",               G_CALLBACK(document_load_finished_cb),    w,
       NULL);
 
     /* let extensions add additional functionality */

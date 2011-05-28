@@ -38,8 +38,6 @@ typedef struct {
     gchar *hover;
     /** Scrollbar hide signal id */
     gulong hide_id;
-    /** The webframes of the view */
-    GHashTable *frames;
     /** Array of webview extensions */
     GPtrArray *extensions;
 } webview_data_t;
