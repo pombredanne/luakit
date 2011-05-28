@@ -38,7 +38,8 @@ inspect_webview_cb(WebKitWebInspector *inspector, WebKitWebView *v, inspector_t 
         i->widget = new;
         // fix attached size
         gtk_widget_set_size_request(new->widget, -1, 300);
-        return WEBKIT_WEB_VIEW(g_object_get_data(G_OBJECT(new->widget), "webview"));
+        webview_data_t *d = new->data;
+        return d->view;
     } else {
         return NULL;
     }
