@@ -31,6 +31,7 @@
 #include "widgets/webview/extension.h"
 #include "widgets/webview/frames.h"
 #include "widgets/webview/javascript.h"
+#include "widgets/webview/inspector.h"
 
 /** Adds all extensions to the \ref webview_data_t */
 static void
@@ -40,6 +41,7 @@ init_extensions(webview_data_t *d)
     /** add new extensions here */
     g_ptr_array_add(d->extensions, frames_extension_new(d));
     g_ptr_array_add(d->extensions, javascript_extension_new(d));
+    g_ptr_array_add(d->extensions, inspector_extension_new(d));
 }
 
 static struct {
