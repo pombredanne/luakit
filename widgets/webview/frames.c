@@ -74,7 +74,7 @@ document_load_finished_cb(WebKitWebView *v, WebKitWebFrame *f, webview_extension
     st->data = d;
     st->frame = f;
     /* don't insert while the view is being destroyed */
-    if (d->frames) {
+    if (d && d->frames) {
         g_object_set_data_full(G_OBJECT(f), FRAME_DESTROY_CB_KEY, st,
                 (GDestroyNotify)frame_destroyed_cb);
         g_hash_table_insert(d->frames, f, NULL);
@@ -104,6 +104,7 @@ frames_extension_destructor(webview_extension_t *e, webview_data_t *wd)
     frames_extension_data_t *d = e->data;
     gpointer frames = d->frames;
     d->frames = NULL;
+    e->data = NULL;
     g_hash_table_foreach(frames, frame_destructor, NULL);
     g_hash_table_destroy(frames);
 
