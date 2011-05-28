@@ -1,7 +1,8 @@
 /*
  * widgets/webview/extension.h - webview extension framework header
  *
- * Copyright © 2010-2011 Mason Larobina <mason.larobina@gmail.com>
+ * Copyright © 2011 Mason Larobina <mason.larobina@gmail.com>
+ * Copyright © 2011 Fabian Streitel <karottenreibe@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
