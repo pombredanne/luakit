@@ -29,6 +29,7 @@
 #include "luah.h"
 #include "widgets/webview.h"
 #include "widgets/webview/extension.h"
+#include "widgets/webview/frames.h"
 
 #define FRAME_DESTROY_CB_KEY "dummy-destroy-notify"
 
@@ -38,6 +39,7 @@ init_extensions(webview_data_t *d)
 {
     d->extensions = g_ptr_array_new();
     /** add new extensions here */
+    g_ptr_array_add(d->extensions, frames_extension_new(d));
 }
 
 static struct {
