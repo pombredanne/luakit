@@ -20,6 +20,8 @@
  */
 
 #include "widgets/webview/inspector.h"
+#include "globalconf.h"
+#include "clib/inspector.h"
 
 /* extension destructor */
 static void
@@ -27,6 +29,8 @@ inspector_extension_destructor(webview_extension_t *e, webview_data_t *wd)
 {
     (void) wd;
 
+    inspector_t *i = e->data;
+    luaH_inspector_destroy(globalconf.L, i);
     g_slice_free(webview_extension_t, e);
 }
 
@@ -34,10 +38,15 @@ inspector_extension_destructor(webview_extension_t *e, webview_data_t *wd)
 static int
 inspector_extension_index(webview_extension_t *e, webview_data_t *d, lua_State *L, luakit_token_t t)
 {
-    (void) e;
     (void) d;
 
+    inspector_t *i = e->data;
+
     switch(t) {
+      case L_TK_INSPECTOR:
+        luaH_object_push(L, i->ref);
+        return 1;
+
       default:
         break;
     }
@@ -46,19 +55,18 @@ inspector_extension_index(webview_extension_t *e, webview_data_t *d, lua_State *
 }
 
 /**
- * Creates a new inspector extension that handles webframe events and makes them
+ * Creates a new inspector extension that handles the webinspector and make it
  * available to Lua.
  */
 webview_extension_t *
 inspector_extension_new(webview_data_t *wd)
 {
     (void) wd;
-
     webview_extension_t *e = g_slice_new(webview_extension_t);
     e->destructor = inspector_extension_destructor;
     e->index = inspector_extension_index;
     e->newindex = NULL;
-    e->data = NULL;
+    e->data = luaH_inspector_new(globalconf.L, wd);
     return e;
 }
 

@@ -22,7 +22,6 @@
 #include <math.h>
 
 #include "globalconf.h"
-#include "clib/inspector.h"
 #include "clib/download.h"
 #include "clib/soup/soup.h"
 #include "common/property.h"
@@ -773,10 +772,6 @@ luaH_webview_index(lua_State *L, luakit_token_t token)
       PS_CASE(HOVERED_URI,          d->hover)
       PS_CASE(URI,                  d->uri)
 
-      case L_TK_INSPECTOR:
-        luaH_object_push(L, d->inspector->ref);
-        return 1;
-
       case L_TK_HISTORY:
         return luaH_webview_push_history(L, d->view);
 
@@ -1062,8 +1057,6 @@ webview_destructor(widget_t *w)
     }
 
     g_ptr_array_remove(globalconf.webviews, w);
-    inspector_t *i = d->inspector;
-    luaH_inspector_destroy(globalconf.L, i);
     gtk_widget_destroy(GTK_WIDGET(d->view));
     gtk_widget_destroy(GTK_WIDGET(d->win));
     g_free(d->uri);
@@ -1094,7 +1087,6 @@ widget_webview(widget_t *w)
     /* create widgets */
     d->view = WEBKIT_WEB_VIEW(webkit_web_view_new());
     d->win = GTK_SCROLLED_WINDOW(gtk_scrolled_window_new(NULL, NULL));
-    d->inspector = luaH_inspector_new(globalconf.L, w);
     w->widget = GTK_WIDGET(d->win);
 
     /* set gobject property to give other widgets a pointer to our webview */

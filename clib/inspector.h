@@ -24,7 +24,7 @@
 
 #include <lua.h>
 #include <webkit/webkit.h>
-#include "clib/widget.h"
+#include "widgets/webview.h"
 
 typedef struct
 {
@@ -38,7 +38,7 @@ typedef struct
 } inspector_t;
 
 void inspector_class_setup(lua_State *);
-inspector_t* luaH_inspector_new(lua_State *, widget_t *);
+inspector_t* luaH_inspector_new(lua_State *, webview_data_t *);
 void luaH_inspector_destroy(lua_State *, inspector_t *);
 
 #endif
