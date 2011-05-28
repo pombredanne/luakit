@@ -119,24 +119,13 @@ frames_extension_index(webview_extension_t *e, webview_data_t *d, lua_State *L, 
     return WEBVIEW_EXTENSION_NO_MATCH;
 }
 
-static int
-frames_extension_newindex(webview_extension_t *e, webview_data_t *d, lua_State *L, luakit_token_t t)
-{
-    (void) e;
-    (void) d;
-    (void) L;
-    (void) t;
-
-    return WEBVIEW_EXTENSION_NO_MATCH;
-}
-
 webview_extension_t *
 frames_extension_new(webview_data_t *wd)
 {
     webview_extension_t *e = g_slice_new(webview_extension_t);
     e->destructor = frames_extension_destructor;
     e->index = frames_extension_index;
-    e->newindex = frames_extension_newindex;
+    e->newindex = NULL;
     frames_extension_data_t *d = g_slice_new(frames_extension_data_t);
     e->data = d;
     /* create frame table */

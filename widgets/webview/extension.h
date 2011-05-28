@@ -44,12 +44,16 @@ struct _webview_extension_t {
     /**
      * Extension for luaH_webview_index
      *
+     * May be NULL, if not used.
+     *
      * @return WEBVIEW_EXTENSION_NO_MATCH if it didn't match and the number of
      *         pushed arguments otherwise.
      */
     int (*index)(webview_extension_t *, webview_data_t *, lua_State* L, luakit_token_t);
     /**
      * Extension for luaH_webview_newindex
+     *
+     * May be NULL, if not used.
      *
      * @return WEBVIEW_EXTENSION_NO_MATCH if it didn't match and the number of
      *         pushed arguments otherwise.
