@@ -39,7 +39,7 @@ typedef struct
 
 void inspector_class_setup(lua_State *);
 inspector_t* luaH_inspector_new(lua_State *, webview_data_t *);
-void luaH_inspector_destroy(lua_State *, inspector_t *);
+void luaH_inspector_destroy(lua_State *L, inspector_t *i);
 
 #endif
 

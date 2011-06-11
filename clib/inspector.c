@@ -59,18 +59,24 @@ show_window_cb(WebKitWebInspector *inspector, inspector_t *i)
     return TRUE;
 }
 
-static gboolean
-close_window_cb(WebKitWebInspector *inspector, inspector_t *i)
+void
+inspector_close_window(lua_State *L, inspector_t *i)
 {
-    (void) inspector;
-
-    lua_State *L = globalconf.L;
     luaH_object_push(L, i->webview->ref);
     luaH_object_push(L, i->widget->ref);
     luaH_object_emit_signal(L, -2, "close-inspector", 1, 0);
     i->visible = FALSE;
     i->attached = FALSE;
     lua_pop(L, 1);
+}
+
+static gboolean
+close_window_cb(WebKitWebInspector *inspector, inspector_t *i)
+{
+    (void) inspector;
+
+    lua_State *L = globalconf.L;
+    inspector_close_window(L, i);
     return TRUE;
 }
 
@@ -171,6 +177,7 @@ luaH_inspector_new(lua_State *L, webview_data_t *d)
 
 void
 luaH_inspector_destroy(lua_State *L, inspector_t *i) {
+    inspector_close_window(L, i);
     luaH_object_unref(L, i->ref);
 }
 
