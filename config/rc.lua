@@ -153,7 +153,7 @@ if f then
     while true do
         local line = f:read("*line")
         if not line then break end
-        w:send(line)
+        w:send(":" .. line)
     end
 end
 
