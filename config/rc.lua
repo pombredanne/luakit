@@ -140,7 +140,21 @@ if w then
     end
 else
     -- Or open new window
-    window.new(uris)
+    w = window.new(uris)
+end
+
+-----------------------------------------
+-- Parse and execute the luakitrc file --
+-----------------------------------------
+
+local rc_file = luakit.config_dir .. "/rc"
+local f = io.open(rc_file, "r")
+if f then
+    while true do
+        local line = f:read("*line")
+        if not line then break end
+        w:send(line)
+    end
 end
 
 -------------------------------------------
