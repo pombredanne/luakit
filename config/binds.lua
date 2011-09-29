@@ -52,7 +52,6 @@ menu_binds = {
 add_binds("all", {
     key({},          "Escape",  function (w) w:set_mode() end),
     key({"Control"}, "[",       function (w) w:set_mode() end),
-    key({},          "F5",      function (w) w:set_mode("present") end),
 
     -- Open link in new tab or navigate to selection
     but({},     2,  function (w, m)
@@ -84,18 +83,6 @@ add_binds("all", {
     -- Horizontal mouse scroll binds
     but({"Shift"},   4, function (w, m) w:scroll{ x = less } end),
     but({"Shift"},   5, function (w, m) w:scroll{ x = more } end),
-
-    -- Slide changingt  binds
-    buf("^gg$",                     function (w, b, m)
-                                        local uri = w.view.uri
-                                        if not string.match(uri, "#%d*$") then uri = uri .. "#" end
-                                        w.view.uri = string.gsub(uri, "#%d*$", "#"..m.count)
-                                    end, {count = 1}),
-    buf("^G$" ,                     function (w, b, m)
-                                        local uri = w.view.uri
-                                        if not string.match(uri, "#%d*$") then uri = uri .. "#" end
-                                        w.view.uri = string.gsub(uri, "#%d*$", "#"..m.count)
-                                    end, {count = 9999}),
 })
 
 add_binds("normal", {

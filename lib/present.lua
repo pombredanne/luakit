@@ -25,3 +25,19 @@ new_mode("present", {
     passthrough = true,
 })
 
+add_binds("all", {
+    key({},          "F5",      function (w) w:set_mode("present") end),
+
+    -- Slide changingt  binds
+    buf("^gg$",                     function (w, b, m)
+                                        local uri = w.view.uri
+                                        if not string.match(uri, "#%d*$") then uri = uri .. "#" end
+                                        w.view.uri = string.gsub(uri, "#%d*$", "#"..m.count)
+                                    end, {count = 1}),
+    buf("^G$" ,                     function (w, b, m)
+                                        local uri = w.view.uri
+                                        if not string.match(uri, "#%d*$") then uri = uri .. "#" end
+                                        w.view.uri = string.gsub(uri, "#%d*$", "#"..m.count)
+                                    end, {count = 9999}),
+})
+
