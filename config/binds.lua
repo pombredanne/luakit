@@ -85,7 +85,7 @@ add_binds("all", {
     but({"Shift"},   4, function (w, m) w:scroll{ x = less } end),
     but({"Shift"},   5, function (w, m) w:scroll{ x = more } end),
 
-    -- Slide changing binds
+    -- Slide changingt  binds
     buf("^gg$",                     function (w, b, m)
                                         local uri = w.view.uri
                                         if not string.match(uri, "#%d*$") then uri = uri .. "#" end
@@ -118,11 +118,6 @@ add_binds("normal", {
     end),
 
     key({},          ":",           function (w) w:set_mode("command") end),
-
-    -- Fullscreen
-    key({},          "F11",         function (w)
-                                        w.win.fullscreen = not w.win.fullscreen
-                                    end),
 
     -- Clipboard
     key({},          "p",           function (w)
