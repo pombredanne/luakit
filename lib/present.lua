@@ -18,6 +18,7 @@ new_mode("present", {
 
     leave = function (w)
         w.win.fullscreen = false
+        w.ibar.ebox:show()
         w.sbar.ebox:show()
         w.tablist.widget:show()
         w.tablist:remove_signal("updated", tablist_hider)
