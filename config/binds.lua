@@ -84,6 +84,18 @@ add_binds("all", {
     -- Horizontal mouse scroll binds
     but({"Shift"},   4, function (w, m) w:scroll{ x = less } end),
     but({"Shift"},   5, function (w, m) w:scroll{ x = more } end),
+
+    -- Slide changing binds
+    buf("^gg$",                     function (w, b, m)
+                                        local uri = w.view.uri
+                                        if not string.match(uri, "#%d*$") then uri = uri .. "#" end
+                                        w.view.uri = string.gsub(uri, "#%d*$", "#"..m.count)
+                                    end, {count = 1}),
+    buf("^G$" ,                     function (w, b, m)
+                                        local uri = w.view.uri
+                                        if not string.match(uri, "#%d*$") then uri = uri .. "#" end
+                                        w.view.uri = string.gsub(uri, "#%d*$", "#"..m.count)
+                                    end, {count = 9999}),
 })
 
 add_binds("normal", {
