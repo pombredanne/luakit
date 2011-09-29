@@ -3,7 +3,6 @@
 -- @copyright 2011 Mason Larobina
 ---------------------------------------------------------------------------
 
-
 local tablist_hider = function (t) t.widget:hide() end
 
 new_mode("present", {
@@ -23,12 +22,17 @@ new_mode("present", {
     end,
 
     passthrough = true,
+    reset_on_focus = false,
+    has_buffer = true,
 })
+
+local key, buf, but = lousy.bind.key, lousy.bind.buf, lousy.bind.but
+local cmd, any = lousy.bind.cmd, lousy.bind.any
 
 add_binds("all", {
     key({},          "F5",      function (w) w:set_mode("present") end),
 
-    -- Slide changingt  binds
+    -- Slide changing binds
     buf("^gg$",                     function (w, b, m)
                                         local uri = w.view.uri
                                         if not string.match(uri, "#%d*$") then uri = uri .. "#" end
@@ -39,5 +43,19 @@ add_binds("all", {
                                         if not string.match(uri, "#%d*$") then uri = uri .. "#" end
                                         w.view.uri = string.gsub(uri, "#%d*$", "#"..m.count)
                                     end, {count = 9999}),
+})
+
+add_binds("present", {
+    parse_count_binding,
+
+    -- Blank screen
+    key({},     ".",                function (w)
+                                        w.blank = not w.blank
+                                        if w.blank then
+                                            w.layout:hide()
+                                        else
+                                            w.layout:show()
+                                        end
+                                    end),
 })
 

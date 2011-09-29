@@ -85,24 +85,26 @@ add_binds("all", {
     but({"Shift"},   5, function (w, m) w:scroll{ x = more } end),
 })
 
+-- Autoparse the `[count]` before a binding and re-call the hit function
+-- with the count removed and added to the opts table.
+parse_count_binding = any(function (w, m)
+    local count, buf
+    if m.buffer then
+        count = string.match(m.buffer, "^(%d+)")
+    end
+    if count then
+        buf = string.sub(m.buffer, #count + 1, (m.updated_buf and -2) or -1)
+        local opts = join(m, {count = tonumber(count)})
+        opts.buffer = (#buf > 0 and buf) or nil
+        if lousy.bind.hit(w, m.binds, m.mods, m.key, opts) then
+            return true
+        end
+    end
+    return false
+end)
+
 add_binds("normal", {
-    -- Autoparse the `[count]` before a binding and re-call the hit function
-    -- with the count removed and added to the opts table.
-    any(function (w, m)
-        local count, buf
-        if m.buffer then
-            count = string.match(m.buffer, "^(%d+)")
-        end
-        if count then
-            buf = string.sub(m.buffer, #count + 1, (m.updated_buf and -2) or -1)
-            local opts = join(m, {count = tonumber(count)})
-            opts.buffer = (#buf > 0 and buf) or nil
-            if lousy.bind.hit(w, m.binds, m.mods, m.key, opts) then
-                return true
-            end
-        end
-        return false
-    end),
+    parse_count_binding,
 
     key({},          ":",           function (w) w:set_mode("command") end),
 

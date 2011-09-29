@@ -9,7 +9,10 @@ theme.font = "monospace normal 9"
 theme.fg   = "#fff"
 theme.bg   = "#000"
 
--- Genaral colours
+-- Presentation colors
+theme.blank_screen = "#000"
+
+-- General colours
 theme.success_fg = "#0f0"
 theme.loaded_fg  = "#33AADD"
 theme.error_fg = "#FFF"

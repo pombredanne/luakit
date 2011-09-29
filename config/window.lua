@@ -207,6 +207,7 @@ window.init_funcs = {
 
         -- Set backgrounds
         for wi, v in pairs({
+            [w.ebox]     = theme.blank_screen,
             [s.l.ebox]   = theme.sbar_bg,
             [s.r.ebox]   = theme.sbar_bg,
             [s.sep]      = theme.sbar_bg,
@@ -256,7 +257,7 @@ window.methods = {
     -- Wrapper around the bind plugin's hit method
     hit = function (w, mods, key, opts)
         local opts = lousy.util.table.join(opts or {}, {
-            enable_buffer = w:is_mode("normal"),
+            enable_buffer = w.mode.has_buffer,
             buffer = w.buffer,
         })
 

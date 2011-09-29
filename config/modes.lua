@@ -89,6 +89,8 @@ new_mode("normal", {
         w:set_prompt()
         w:set_input()
     end,
+
+    has_buffer = true,
 })
 
 -- Setup insert mode
