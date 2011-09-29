@@ -52,10 +52,7 @@ menu_binds = {
 add_binds("all", {
     key({},          "Escape",  function (w) w:set_mode() end),
     key({"Control"}, "[",       function (w) w:set_mode() end),
-
-    -- Mouse bindings
-    but({},     8,  function (w) w:back()     end),
-    but({},     9,  function (w) w:forward()  end),
+    key({},          "F5",      function (w) w:set_mode("present") end),
 
     -- Open link in new tab or navigate to selection
     but({},     2,  function (w, m)
@@ -108,52 +105,7 @@ add_binds("normal", {
         return false
     end),
 
-    key({},          "i",           function (w) w:set_mode("insert")  end),
     key({},          ":",           function (w) w:set_mode("command") end),
-
-    -- Scrolling
-    key({},          "j",           function (w) w:scroll{ y = more    } end),
-    key({},          "k",           function (w) w:scroll{ y = less    } end),
-    key({},          "h",           function (w) w:scroll{ x = less    } end),
-    key({},          "l",           function (w) w:scroll{ x = more    } end),
-    key({},          "^",           function (w) w:scroll{ x = "0%"    } end),
-    key({},          "$",           function (w) w:scroll{ x = "100%"  } end),
-    key({"Control"}, "e",           function (w) w:scroll{ y = more    } end),
-    key({"Control"}, "y",           function (w) w:scroll{ y = less    } end),
-    key({"Control"}, "d",           function (w) w:scroll{ y = "+0.5p" } end),
-    key({"Control"}, "u",           function (w) w:scroll{ y = "-0.5p" } end),
-    key({"Control"}, "f",           function (w) w:scroll{ y = "+1.0p" } end),
-    key({"Control"}, "b",           function (w) w:scroll{ y = "-1.0p" } end),
-    key({},          "space",       function (w) w:scroll{ y = "+1.0p" } end),
-    key({"Shift"},   "space",       function (w) w:scroll{ y = "-1.0p" } end),
-    key({},          "BackSpace",   function (w) w:scroll{ y = "-1.0p" } end),
-
-    -- Specific scroll
-    buf("^gg$",                     function (w, b, m) w:scroll{ y = m.count.."%" } end, {count = 0}),
-    buf("^G$",                      function (w, b, m) w:scroll{ y = m.count.."%" } end, {count = 100}),
-
-    -- Traditional scrolling commands
-    key({},          "Down",        function (w) w:scroll{ y = more    } end),
-    key({},          "Up",          function (w) w:scroll{ y = less    } end),
-    key({},          "Left",        function (w) w:scroll{ x = less    } end),
-    key({},          "Right",       function (w) w:scroll{ x = more    } end),
-    key({},          "Page_Down",   function (w) w:scroll{ y = "+1.0p" } end),
-    key({},          "Page_Up",     function (w) w:scroll{ y = "-1.0p" } end),
-    key({},          "Home",        function (w) w:scroll{ y = "0%"    } end),
-    key({},          "End",         function (w) w:scroll{ y = "100%"  } end),
-    key({},          "$",           function (w) w:scroll{ x = "100%"  } end),
-    key({},          "0",           function (w, m)
-                                        if not m.count then w:scroll{ y = "0%" } else return false end
-                                    end),
-
-    -- Zooming
-    key({},          "+",           function (w, m)    w:zoom_in(zoom_step  * m.count)       end, {count=1}),
-    key({},          "-",           function (w, m)    w:zoom_out(zoom_step * m.count)       end, {count=1}),
-    key({},          "=",           function (w, m)    w:zoom_set() end),
-    buf("^z[iI]$",                  function (w, b, m) w:zoom_in(zoom_step  * m.count, b == "zI") end, {count=1}),
-    buf("^z[oO]$",                  function (w, b, m) w:zoom_out(zoom_step * m.count, b == "zO") end, {count=1}),
-    -- Zoom reset or specific zoom ([count]zZ for full content zoom)
-    buf("^z[zZ]$",                  function (w, b, m) w:zoom_set(m.count/100, b == "zZ") end, {count=100}),
 
     -- Fullscreen
     key({},          "F11",         function (w)

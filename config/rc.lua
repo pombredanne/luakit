@@ -2,21 +2,6 @@
 -- luakit configuration file, more information at http://luakit.org/ --
 -----------------------------------------------------------------------
 
-if unique then
-    unique.new("org.luakit")
-    -- Check for a running luakit instance
-    if unique.is_running() then
-        if uris[1] then
-            for _, uri in ipairs(uris) do
-                unique.send_message("tabopen " .. uri)
-            end
-        else
-            unique.send_message("winopen")
-        end
-        luakit.quit()
-    end
-end
-
 -- Load library of useful functions for luakit
 require "lousy"
 
@@ -129,6 +114,9 @@ require "follow_selected"
 require "go_input"
 require "go_next_prev"
 require "go_up"
+
+-- Load presentation specific config
+require "present"
 
 -----------------------------
 -- End user script loading --
