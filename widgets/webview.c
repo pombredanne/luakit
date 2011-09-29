@@ -435,6 +435,14 @@ luaH_webview_stop(lua_State *L)
     return 0;
 }
 
+static gint
+luaH_webview_focus(lua_State *L)
+{
+    webview_data_t *d = luaH_checkwvdata(L, 1);
+    gtk_widget_grab_focus(GTK_WIDGET(d->view));
+    return 0;
+}
+
 /* check for trusted ssl certificate */
 static gint
 luaH_webview_ssl_trusted(lua_State *L)
@@ -481,6 +489,7 @@ luaH_webview_index(lua_State *L, luakit_token_t token)
       PF_CASE(RELOAD_BYPASS_CACHE,  luaH_webview_reload_bypass_cache)
       PF_CASE(SSL_TRUSTED,          luaH_webview_ssl_trusted)
       PF_CASE(STOP,                 luaH_webview_stop)
+      PF_CASE(FOCUS_VIEW,           luaH_webview_focus)
 
       /* push string properties */
       PS_CASE(HOVERED_URI,          d->hover)

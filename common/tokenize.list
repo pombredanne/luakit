@@ -70,6 +70,7 @@ fantasy_font_family
 fg
 filename
 focus
+focus_view
 font
 frames
 full_content_zoom
