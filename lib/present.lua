@@ -12,6 +12,8 @@ new_mode("present", {
         w.sbar.ebox:hide()
         w.tablist.widget:hide()
         w.tablist:add_signal("updated", tablist_hider)
+        -- reset Sozi player
+        w:eval_js("sozi.display.clip = false; sozi.display.update()", "(sozi-reset)")
     end,
 
     leave = function (w)

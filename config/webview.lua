@@ -153,29 +153,6 @@ webview.init_funcs = {
         end)
     end,
 
-    -- Domain properties
-    domain_properties = function (view, w)
-        view:add_signal("load-status", function (v, status)
-            if status ~= "committed" or v.uri == "about:blank" then return end
-            -- Get domain
-            local domain = lousy.uri.parse(v.uri).host
-            -- Strip leading www.
-            domain = string.match(domain or "", "^www%.(.+)") or domain or "all"
-            -- Build list of domain props tables to join & load.
-            -- I.e. for luakit.org load .luakit.org, luakit.org, .org
-            local props = {domain_props.all or {}, domain_props[domain] or {}}
-            repeat
-                table.insert(props, 2, domain_props["."..domain] or {})
-                domain = string.match(domain, "%.(.+)")
-            until not domain
-            -- Join all property tables
-            for k, v in pairs(lousy.util.table.join(unpack(props))) do
-                info("Domain prop: %s = %s (%s)", k, tostring(v), domain)
-                view[k] = v
-            end
-        end)
-    end,
-
     -- Action to take on mime type decision request.
     mime_decision = function (view, w)
         -- Return true to accept or false to reject from this signal.
