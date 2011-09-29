@@ -36,14 +36,10 @@ add_binds("all", {
 
     -- Slide changing binds
     buf("^gg$",                     function (w, b, m)
-                                        local uri = w.view.uri
-                                        if not string.match(uri, "#%d*$") then uri = uri .. "#" end
-                                        w.view.uri = string.gsub(uri, "#%d*$", "#"..m.count)
-                                    end, {count = 1}),
+                                        w:eval_js(string.format("sozi.player.jumpToFrame(%i)", m.count), "(present.lua)")
+                                    end, {count = 0}),
     buf("^G$" ,                     function (w, b, m)
-                                        local uri = w.view.uri
-                                        if not string.match(uri, "#%d*$") then uri = uri .. "#" end
-                                        w.view.uri = string.gsub(uri, "#%d*$", "#"..m.count)
+                                        w:eval_js(string.format("sozi.player.jumpToFrame(%i)", m.count), "(present.lua)")
                                     end, {count = 9999}),
 })
 
