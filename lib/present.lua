@@ -35,9 +35,8 @@ local cmd, any = lousy.bind.cmd, lousy.bind.any
 
 add_cmds({
     cmd("timer",                    function (w, a)
-                                        w.timer = timer.new{timeout = tonumber(a)}
-                                        w.layout:pack(w.timer.widget)
-                                        w.timer:start()
+                                        presenter.timer.timeout = tonumber(a) * 60
+                                        presenter.timer:update()
                                     end),
 })
 

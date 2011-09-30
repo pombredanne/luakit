@@ -130,7 +130,8 @@ if w then
     end
 else
     -- Or open new window
-    window.new(uris)
+    presentation = window.new(uris)
+    presenter = window.new(uris, true)
 end
 
 -------------------------------------------

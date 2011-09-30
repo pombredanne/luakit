@@ -16,11 +16,11 @@ module "lousy.widget.timer"
 
 function update(t)
     local now = os.time()
-    local diff = now - t.start_time
+    local diff = t.start_time and now - t.start_time or 0
     diff = t.timeout - diff
     local mins = math.floor(diff / 60)
     local secs = math.floor(diff % 60)
-    t.widget.text = string.format("%i:%i", mins, secs)
+    t.widget.text = string.format("%i:%02i", mins, secs)
 end
 
 function start(t)
@@ -33,8 +33,9 @@ function new(opts)
     local t = {
         timeout = (opts.timeout or 15) * 60,
         widget = capi.widget{type="label"},
-        start = function (t) start(t) end,
         timer = capi.timer{interval=500},
+        start = function (t) start(t) end,
+        update = function (t) update(t) end,
     }
 
     local theme = get_theme()
@@ -47,6 +48,7 @@ function new(opts)
     end
 
     t.widget.align = { x = 0.5, y = 0.5 }
+    update(t)
 
     return t
 end
