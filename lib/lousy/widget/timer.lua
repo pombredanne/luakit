@@ -15,26 +15,30 @@ local pairs = pairs
 module "lousy.widget.timer"
 
 function update(t)
-    local now = os.time()
-    local diff = t.start_time and now - t.start_time or 0
-    diff = t.timeout - diff
-    local mins = math.floor(diff / 60)
-    local secs = math.floor(diff % 60)
+    local mins = math.floor(t.timeout / 60)
+    local secs = math.floor(t.timeout % 60)
     t.widget.text = string.format("%i:%02i", mins, secs)
 end
 
 function start(t)
-    t.start_time = os.time()
-    t.timer:add_signal("timeout", function () update(t) end)
+    t.timer:add_signal("timeout", function ()
+        t.timeout = t.timeout - 1
+        update(t)
+    end)
     t.timer:start()
+end
+
+function stop(t)
+    t.timer:stop()
 end
 
 function new(opts)
     local t = {
         timeout = (opts.timeout or 15) * 60,
         widget = capi.widget{type="label"},
-        timer = capi.timer{interval=500},
+        timer = capi.timer{interval=1000},
         start = function (t) start(t) end,
+        stop = function (t) stop(t) end,
         update = function (t) update(t) end,
     }
 

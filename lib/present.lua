@@ -41,7 +41,10 @@ add_cmds({
 })
 
 add_binds("all", {
-    key({},         "F5",           function (w) w:set_mode("present") end),
+    key({},         "F5",           function (w)
+                                        presentation:set_mode("present")
+                                        presenter.timer:start()
+                                    end),
 
     -- Slide changing binds
     buf("^gg$",                     function (w, b, m)
