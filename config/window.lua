@@ -795,12 +795,8 @@ window.indexes = {
 }
 
 -- Create new window
-function window.new(uris, is_presenter)
+function window.new(uris)
     local w = window.build()
-    if is_presenter then
-        w.timer = lousy.widget.timer.new{timeout = tonumber(a)}
-        w.layout:pack(w.timer.widget)
-    end
 
     -- Set window metatable
     setmetatable(w, {

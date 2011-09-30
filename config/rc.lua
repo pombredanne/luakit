@@ -130,14 +130,7 @@ if w then
     end
 else
     -- Or open new window
-    presentation = window.new(uris)
-    presenter = window.new(uris, true)
-    presentation.win:add_signal("destroy", function ()
-        if presenter.close_win then presentation:close_win() end
-    end)
-    presenter.win:add_signal("destroy", function ()
-        if presentation.close_win then presentation:close_win() end
-    end)
+    new_presentation(uris)
 end
 
 -------------------------------------------

@@ -3,6 +3,23 @@
 -- @copyright 2011 Mason Larobina
 ---------------------------------------------------------------------------
 
+local presentation
+local presenter
+
+function new_presentation(uris)
+    presentation = window.new(uris)
+    presentation.win:add_signal("destroy", function ()
+        if presenter.close_win then presentation:close_win() end
+    end)
+
+    presenter = window.new(uris)
+    presenter.win:add_signal("destroy", function ()
+        if presentation.close_win then presentation:close_win() end
+    end)
+    presenter.timer = lousy.widget.timer.new{timeout = tonumber(a)}
+    presenter.layout:pack(presenter.timer.widget)
+end
+
 local timer = require "lousy.widget.timer"
 local tablist_hider = function (t) t.widget:hide() end
 
