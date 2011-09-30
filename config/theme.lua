@@ -11,6 +11,7 @@ theme.bg   = "#000"
 
 -- Presentation colors
 theme.blank_screen = "#000"
+theme.timer_font = "monospace normal 72"
 
 -- General colours
 theme.success_fg = "#0f0"

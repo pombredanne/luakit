@@ -3,6 +3,7 @@
 -- @copyright 2011 Mason Larobina
 ---------------------------------------------------------------------------
 
+local timer = require "lousy.widget.timer"
 local tablist_hider = function (t) t.widget:hide() end
 
 new_mode("present", {
@@ -31,6 +32,14 @@ new_mode("present", {
 
 local key, buf, but = lousy.bind.key, lousy.bind.buf, lousy.bind.but
 local cmd, any = lousy.bind.cmd, lousy.bind.any
+
+add_cmds({
+    cmd("timer",                    function (w, a)
+                                        w.timer = timer.new{timeout = tonumber(a)}
+                                        w.layout:pack(w.timer.widget)
+                                        w.timer:start()
+                                    end),
+})
 
 add_binds("all", {
     key({},         "F5",           function (w) w:set_mode("present") end),

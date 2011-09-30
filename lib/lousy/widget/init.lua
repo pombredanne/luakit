@@ -5,6 +5,7 @@
 
 require "lousy.widget.tablist"
 require "lousy.widget.menu"
+require "lousy.widget.timer"
 
 --- Widget module for luakit
 module "lousy.widget"
