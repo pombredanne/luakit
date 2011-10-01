@@ -52,8 +52,15 @@ local cmd, any = lousy.bind.cmd, lousy.bind.any
 
 add_cmds({
     cmd("timer",                    function (w, a)
-                                        presenter.timer.time = tonumber(a) * 60
+                                        local time, middle, finish = unpack(lousy.util.string.split(a, "%s"))
+                                        time   = time   and tonumber(time)   * 60 or presenter.timer.time
+                                        middle = middle and tonumber(middle) * 60 or presenter.timer.etaps.middle
+                                        finish = finish and tonumber(finish) * 60 or presenter.timer.etaps.finish
+                                        presenter.timer.time         = time
+                                        presenter.timer.etaps.middle = middle
+                                        presenter.timer.etaps.finish = finish
                                         presenter.timer:update()
+                                        w:notify(string.format("set timer to %.2f min, middle %.2f min, finish %.2f min", time / 60, middle / 60, finish / 60))
                                     end),
 })
 
