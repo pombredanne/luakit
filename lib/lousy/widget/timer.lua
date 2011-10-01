@@ -11,13 +11,15 @@ local os = require "os"
 local string = string
 local get_theme = require("lousy.theme").get
 local pairs = pairs
+local tostring = tostring
 
 module "lousy.widget.timer"
 
 function update(t)
-    local mins = math.floor(t.timeout / 60)
-    local secs = math.floor(t.timeout % 60)
-    t.widget.text = string.format("%i:%02i", mins, secs)
+    local bound = t.timeout < 0 and math.ceil or math.floor
+    local mins = bound(t.timeout / 60)
+    local secs = math.abs(math.mod(t.timeout, 60))
+    t.widget.text = string.format("%s:%02i", tostring(mins), secs)
 end
 
 function start(t)
