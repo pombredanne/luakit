@@ -67,10 +67,15 @@ local cmd, any = lousy.bind.cmd, lousy.bind.any
 
 add_cmds({
     cmd("timer",                    function (w, a)
-                                        local time, middle, finish = unpack(lousy.util.string.split(a, "%s"))
-                                        time   = time   and tonumber(time)   * 60 or presenter.timer.time
-                                        middle = middle and tonumber(middle) * 60 or presenter.timer.etaps.middle
-                                        finish = finish and tonumber(finish) * 60 or presenter.timer.etaps.finish
+                                        if not presenter.timer then
+                                            presenter.timer = lousy.widget.timer.new{timeout = tonumber(w.ibar.input.text)}
+                                            presenter.layout:pack(presenter.timer.widget)
+                                        end
+                                        local split = lousy.util.string.split(a or "", "%s")
+                                        for k, v in ipairs(split) do split[k] = tonumber(v) end
+                                        local time   = split[1] and split[1] * 60 or presenter.timer.time
+                                        local middle = split[2] and split[2] * 60 or presenter.timer.etaps.middle
+                                        local finish = split[3] and split[3] * 60 or presenter.timer.etaps.finish
                                         presenter.timer.time         = time
                                         presenter.timer.etaps.middle = middle
                                         presenter.timer.etaps.finish = finish
