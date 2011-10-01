@@ -63,6 +63,16 @@ luaH_window_set_default_size(lua_State *L)
 }
 
 static gint
+luaH_window_resize(lua_State *L)
+{
+    window_data_t *d = luaH_checkwindata(L, 1);
+    gint width = (gint) luaL_checknumber(L, 2);
+    gint height = (gint) luaL_checknumber(L, 3);
+    gtk_window_resize(d->win, width, height);
+    return 0;
+}
+
+static gint
 luaH_window_show(lua_State *L)
 {
     widget_t *w = luaH_checkwidget(L, 1);
@@ -88,6 +98,7 @@ luaH_window_index(lua_State *L, luakit_token_t token)
 
       /* push window class methods */
       PF_CASE(SET_DEFAULT_SIZE, luaH_window_set_default_size)
+      PF_CASE(RESIZE,           luaH_window_resize)
       PF_CASE(SHOW,             luaH_window_show)
 
       /* push string properties */

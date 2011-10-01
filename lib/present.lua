@@ -109,6 +109,11 @@ add_cmds({
                                     end),
     cmd("next",                     function (w) presenter.main.right:show() end),
     cmd("nonext",                   function (w) presenter.main.right:hide() end),
+    cmd("resize",                   function (w, a)
+                                        local width, height = string.match(a or "", "^(%d*)x(%d*)$")
+                                        if not (width and height) then return w:error("size must be of format <width>x<height>") end
+                                        presentation.win:resize(width, height)
+                                    end),
 })
 
 add_binds("all", {
