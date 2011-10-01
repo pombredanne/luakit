@@ -28,7 +28,6 @@ function update(t)
                    timeout < t.etaps.middle and "middle"   or ""
     for k, v in pairs{
         fg   = theme[prefix .. "_timer_fg"],
-        bg   = theme[prefix .. "_timer_bg"],
         font = theme[prefix .. "_timer_font"],
     } do
         t.widget[k] = v
