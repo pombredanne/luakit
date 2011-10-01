@@ -35,6 +35,7 @@ function new_presentation(uris)
     presenter.layout:remove(presenter.tabs)
 
     m.right.uri = presenter.view.uri
+    m.right:hide()
     m.layout:pack(m.left,  {fill = true, expand = true})
     m.layout:pack(m.right, {fill = true, expand = true})
 
@@ -106,6 +107,8 @@ add_cmds({
                                         presenter.timer:update()
                                         w:notify(string.format("set timer to %.2f min, middle %.2f min, finish %.2f min", time / 60, middle / 60, finish / 60))
                                     end),
+    cmd("next",                     function (w) presenter.main.right:show() end),
+    cmd("nonext",                   function (w) presenter.main.right:hide() end),
 })
 
 add_binds("all", {
