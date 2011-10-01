@@ -119,7 +119,7 @@ add_cmds({
 add_binds("all", {
     key({},         "F5",           function (w)
                                         presentation:set_mode("present")
-                                        presenter.timer:start()
+                                        if presenter.timer then presenter.timer:start() end
                                     end),
 
     -- Slide changing binds
