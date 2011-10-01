@@ -79,9 +79,12 @@ new_mode("timer", {
     end,
 
     activate = function (w)
-        presenter.timer = lousy.widget.timer.new{timeout = tonumber(w.ibar.input.text)}
-        presenter.layout:pack(presenter.timer.widget)
-        w:set_mode()
+        local timeout = tonumber(w.ibar.input.text)
+        if timeout then
+            presenter.timer = lousy.widget.timer.new{timeout = timeout}
+            presenter.layout:pack(presenter.timer.widget)
+        end
+        w:set_mode("passthrough")
     end,
 
     reset_on_navigation = false,
