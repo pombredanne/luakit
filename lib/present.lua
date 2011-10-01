@@ -16,15 +16,16 @@ function new_presentation(uris)
     presentation.win:add_signal("destroy", luakit.quit)
     presentation.view:add_signal("property::uri", function (v, status)
         local uri = v:eval_js("document.location", "(present.lua)")
-        presenter.view.uri = uri
+        presenter.main.left.uri = uri
         presenter.main.right.uri = inc(uri)
     end)
 
     presenter = window.new(uris)
     local m = {
         layout = widget{type = "hbox"},
-        left = presenter.tabs,
-        right = widget{type = "webview"},
+        left = widget{type = "webview"},
+        right = presenter.view,
+        tabs = presenter.tabs,
     }
     presenter.main = m
 
@@ -35,8 +36,8 @@ function new_presentation(uris)
     presenter.layout:remove(presenter.tabs)
 
     m.right.uri = presenter.view.uri
-    m.layout:pack(m.left,  {fill = true, expand = true})
-    m.layout:pack(m.right, {fill = true, expand = true})
+    m.layout:pack(m.left, {fill = true, expand = true})
+    m.layout:pack(m.tabs, {fill = true, expand = true})
 
     presenter.win:add_signal("destroy", luakit.quit)
 
@@ -80,7 +81,11 @@ new_mode("timer", {
     activate = function (w)
         presenter.timer = lousy.widget.timer.new{timeout = tonumber(w.ibar.input.text)}
         presenter.layout:pack(presenter.timer.widget)
-        w:set_mode()
+        w:set_mode("passthrough")
+    end,
+
+    leave = function (w)
+        w.view:focus_view()
     end,
 
     reset_on_navigation = false,
