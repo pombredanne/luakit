@@ -15,8 +15,8 @@ function new_presentation(uris)
 
     presenter = window.new(uris)
     presenter.win:add_signal("destroy", luakit.quit)
-    presenter.timer = lousy.widget.timer.new{timeout = tonumber(a)}
-    presenter.layout:pack(presenter.timer.widget)
+
+    presenter:set_mode("timer")
 end
 
 local timer = require "lousy.widget.timer"
@@ -45,6 +45,21 @@ new_mode("present", {
     passthrough = true,
     reset_on_focus = false,
     has_buffer = true,
+})
+
+new_mode("timer", {
+    enter = function (w)
+        w:set_prompt("Timer:")
+        w:set_input("")
+    end,
+
+    activate = function (w)
+        presenter.timer = lousy.widget.timer.new{timeout = tonumber(w.ibar.input.text)}
+        presenter.layout:pack(presenter.timer.widget)
+        w:set_mode()
+    end,
+
+    reset_on_navigation = false,
 })
 
 local key, buf, but = lousy.bind.key, lousy.bind.buf, lousy.bind.but
