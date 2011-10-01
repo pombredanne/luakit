@@ -8,17 +8,13 @@ local presenter
 
 function new_presentation(uris)
     presentation = window.new(uris)
-    presentation.win:add_signal("destroy", function ()
-        if presenter.close_win then presentation:close_win() end
-    end)
+    presentation.win:add_signal("destroy", luakit.quit)
     presentation.view:add_signal("property::uri", function (v, status)
         presenter.view.uri = v:eval_js("document.location", "(present.lua)")
     end)
 
     presenter = window.new(uris)
-    presenter.win:add_signal("destroy", function ()
-        if presentation.close_win then presentation:close_win() end
-    end)
+    presenter.win:add_signal("destroy", luakit.quit)
     presenter.timer = lousy.widget.timer.new{timeout = tonumber(a)}
     presenter.layout:pack(presenter.timer.widget)
 end
