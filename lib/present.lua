@@ -52,7 +52,7 @@ local cmd, any = lousy.bind.cmd, lousy.bind.any
 
 add_cmds({
     cmd("timer",                    function (w, a)
-                                        presenter.timer.timeout = tonumber(a) * 60
+                                        presenter.timer.time = tonumber(a) * 60
                                         presenter.timer:update()
                                     end),
 })
