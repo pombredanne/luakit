@@ -112,6 +112,8 @@ add_cmds({
                                     end),
     cmd("next",                     function (w) presenter.main.right:show() end),
     cmd("nonext",                   function (w) presenter.main.right:hide() end),
+    cmd("tstart",                   function (w) if presenter.timer then presenter.timer:start() end end),
+    cmd("tstop",                    function (w) if presenter.timer then presenter.timer:stop() end end),
     cmd("resize",                   function (w, a)
                                         local width, height = string.match(a or "", "^(%d*)x(%d*)$")
                                         if not (width and height) then return w:error("size must be of format <width>x<height>") end
