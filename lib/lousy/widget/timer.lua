@@ -12,8 +12,11 @@ local string = string
 local get_theme = require("lousy.theme").get
 local pairs = pairs
 local tostring = tostring
+local assert = assert
 
 module "lousy.widget.timer"
+
+local data = setmetatable({}, {__mode="k"})
 
 function update(t)
     local timeout = t.time
@@ -35,15 +38,19 @@ function update(t)
 end
 
 function start(t)
-    t.timer:add_signal("timeout", function ()
-        t.time = t.time - 1
-        update(t)
-    end)
-    t.timer:start()
+    local d = assert(data[t], "not a timer widget")
+    if not d.started then
+        d.timer:start()
+        d.started = true
+    end
 end
 
 function stop(t)
-    t.timer:stop()
+    local d = assert(data[t], "not a timer widget")
+    if d.started then
+        d.timer:stop()
+        d.started = false
+    end
 end
 
 function new(opts)
@@ -57,11 +64,21 @@ function new(opts)
         },
         time = timeout * 60,
         widget = capi.widget{type="label"},
-        timer = capi.timer{interval=1000},
         start = function (t) start(t) end,
         stop = function (t) stop(t) end,
         update = function (t) update(t) end,
     }
+
+    local d = {
+        timer = capi.timer{interval=1000},
+        started = false,
+    }
+    data[t] = d
+
+    d.timer:add_signal("timeout", function ()
+        t.time = t.time - 1
+        update(t)
+    end)
 
     t.widget.align = { x = 0.5, y = 0.5 }
     update(t)
