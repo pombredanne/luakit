@@ -11,6 +11,9 @@ function new_presentation(uris)
     presentation.win:add_signal("destroy", function ()
         if presenter.close_win then presentation:close_win() end
     end)
+    presentation.view:add_signal("property::uri", function (v, status)
+        presenter.view.uri = v:eval_js("document.location", "(present.lua)")
+    end)
 
     presenter = window.new(uris)
     presenter.win:add_signal("destroy", function ()
@@ -23,6 +26,7 @@ end
 local timer = require "lousy.widget.timer"
 local tablist_hider = function (t) t.widget:hide() end
 
+-- Bindings and commands
 new_mode("present", {
     enter = function (w)
         w.win.fullscreen = true
