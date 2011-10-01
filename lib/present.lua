@@ -6,14 +6,38 @@
 local presentation
 local presenter
 
+local inc = function (uri)
+    local slide = string.match(uri, "#(%d*)$")
+    return slide and string.gsub(uri, "#%d*$", "#"..tostring(slide + 1)) or uri.."#2"
+end
+
 function new_presentation(uris)
     presentation = window.new(uris)
     presentation.win:add_signal("destroy", luakit.quit)
     presentation.view:add_signal("property::uri", function (v, status)
-        presenter.view.uri = v:eval_js("document.location", "(present.lua)")
+        local uri = v:eval_js("document.location", "(present.lua)")
+        presenter.view.uri = uri
+        presenter.main.right.uri = inc(uri)
     end)
 
     presenter = window.new(uris)
+    local m = {
+        layout = widget{type = "hbox"},
+        left = presenter.tabs,
+        right = widget{type = "webview"},
+    }
+    presenter.main = m
+
+    m.layout.homogeneous = true
+    m.layout.spacing = 5
+    presenter.layout:pack(m.layout, {fill = true, expand = true})
+    presenter.layout:reorder(m.layout, 2)
+    presenter.layout:remove(presenter.tabs)
+
+    m.right.uri = presenter.view.uri
+    m.layout:pack(m.left,  {fill = true, expand = true})
+    m.layout:pack(m.right, {fill = true, expand = true})
+
     presenter.win:add_signal("destroy", luakit.quit)
 
     presenter:set_mode("timer")
