@@ -63,9 +63,9 @@ void
 init_directories(void)
 {
     /* create luakit directory */
-    globalconf.cache_dir  = g_build_filename(g_get_user_cache_dir(),  "luakit", NULL);
-    globalconf.config_dir = g_build_filename(g_get_user_config_dir(), "luakit", NULL);
-    globalconf.data_dir   = g_build_filename(g_get_user_data_dir(),   "luakit", NULL);
+    globalconf.cache_dir  = g_build_filename(g_get_user_cache_dir(),  APP_NAME, NULL);
+    globalconf.config_dir = g_build_filename(g_get_user_config_dir(), APP_NAME, NULL);
+    globalconf.data_dir   = g_build_filename(g_get_user_data_dir(),   APP_NAME, NULL);
     g_mkdir_with_parents(globalconf.cache_dir,  0771);
     g_mkdir_with_parents(globalconf.config_dir, 0771);
     g_mkdir_with_parents(globalconf.data_dir,   0771);
@@ -106,7 +106,7 @@ parseopts(int argc, gchar *argv[], gboolean **nonblock) {
 
     /* print version and exit */
     if (version_only) {
-        g_printf("luakit %s\n", VERSION);
+        g_printf("%s %s\n", APP_NAME, VERSION);
         exit(EXIT_SUCCESS);
     }
 

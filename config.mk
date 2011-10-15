@@ -1,5 +1,6 @@
 # The name of the application to build
 APP_NAME ?= luakit
+CPPFLAGS += '-DAPP_NAME="$(APP_NAME)"'
 
 # Get the current version which is either a nearby git tag or a short-hash
 # of the current commit.
