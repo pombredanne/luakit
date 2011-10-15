@@ -1,4 +1,9 @@
-# The name of the application to build
+# The name of the application to build.
+# In order to change the name, change the macro and rename the following
+# files accordingly:
+#
+# *	extras/luakit.desktop
+# *	extras/luakit.png
 APP_NAME ?= luakit
 CPPFLAGS += '-DAPP_NAME="$(APP_NAME)"'
 
