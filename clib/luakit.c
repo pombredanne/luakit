@@ -456,6 +456,7 @@ luaH_luakit_index(lua_State *L)
       PS_CASE(DATA_DIR,         globalconf.data_dir)
       PS_CASE(EXECPATH,         globalconf.execpath)
       PS_CASE(CONFPATH,         globalconf.confpath)
+      PS_CASE(APP_NAME,         APP_NAME)
       /* push boolean properties */
       PB_CASE(VERBOSE,          globalconf.verbose)
       PB_CASE(NOUNIQUE,         globalconf.nounique)

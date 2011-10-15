@@ -2,6 +2,7 @@ accept_language
 accept_language_auto
 accept_policy
 align
+app_name
 append
 auto_load_images
 auto_resize_window

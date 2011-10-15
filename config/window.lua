@@ -444,7 +444,7 @@ window.methods = {
 
     update_win_title = function (w)
         local uri, title = w.view.uri, w.view.title
-        title = (title or "luakit") .. ((uri and " - " .. uri) or "")
+        title = (title or luakit.app_name) .. ((uri and " - " .. uri) or "")
         local max = globals.max_title_len or 80
         if #title > max then title = string.sub(title, 1, max) .. "..." end
         w.win.title = title
