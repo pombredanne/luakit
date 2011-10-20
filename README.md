@@ -1,3 +1,17 @@
+# Luapresent
+
+luapresent is an extension to luakit that allows it to show presentations created
+with Sozi (http://sozi.baierouge.fr/wiki/). It adds the following main features:
+
+*   a (partly) synchronized presenter screen
+*   a colored timer
+*   bindings for some presentation remotes
+
+## Contributions
+
+luapresent is maintained as a branch in karottenreibe's GitHub fork of luakit:
+https://github.com/karottenreibe/luakit/tree/luapresent
+
 # Luakit
 
 luakit is a fast, light and simple to use micro-browser framework exensible
