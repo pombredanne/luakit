@@ -50,12 +50,15 @@ local tablist_hider = function (t) t.widget:hide() end
 -- Bindings and commands
 new_mode("present", {
     enter = function (w)
+        -- hide everything but webview
         w.win.fullscreen = true
         w.win.show_cursor = false
         w.ibar.ebox:hide()
         w.sbar.ebox:hide()
         w.tablist.widget:hide()
         w.tablist:add_signal("updated", tablist_hider)
+        -- start timer
+        if presenter.timer then presenter.timer:start() end
         -- reset Sozi player
         w:eval_js("sozi.display.clip = false; sozi.display.update()", "(sozi-reset)")
     end,
@@ -124,10 +127,7 @@ add_cmds({
 })
 
 add_binds("all", {
-    key({},         "F5",           function (w)
-                                        presentation:set_mode("present")
-                                        if presenter.timer then presenter.timer:start() end
-                                    end),
+    key({},         "F5",           function (w) presentation:set_mode("present") end),
 
     -- Slide changing binds
     buf("^gg$",                     function (w, b, m)
