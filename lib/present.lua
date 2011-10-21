@@ -51,6 +51,7 @@ local tablist_hider = function (t) t.widget:hide() end
 new_mode("present", {
     enter = function (w)
         w.win.fullscreen = true
+        w.win.show_cursor = false
         w.ibar.ebox:hide()
         w.sbar.ebox:hide()
         w.tablist.widget:hide()
@@ -61,6 +62,7 @@ new_mode("present", {
 
     leave = function (w)
         w.win.fullscreen = false
+        w.win.show_cursor = true
         w.ibar.ebox:show()
         w.sbar.ebox:show()
         w.tablist.widget:show()
