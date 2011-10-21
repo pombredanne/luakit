@@ -109,6 +109,7 @@ luaH_window_index(lua_State *L, luakit_token_t token)
       PB_CASE(URGENCY_HINT, gtk_window_get_urgency_hint(d->win))
       PB_CASE(FULLSCREEN,   d->state & GDK_WINDOW_STATE_FULLSCREEN)
       PB_CASE(MAXIMIZED,    d->state & GDK_WINDOW_STATE_MAXIMIZED)
+      PB_CASE(SHOW_CURSOR,  gdk_window_get_cursor(GTK_WIDGET(d->win)->window) == NULL)
 
       /* push integer properties */
       PI_CASE(XID, GDK_WINDOW_XID(GTK_WIDGET(d->win)->window))
@@ -167,6 +168,13 @@ luaH_window_newindex(lua_State *L, luakit_token_t token)
             gtk_window_maximize(d->win);
         else
             gtk_window_unmaximize(d->win);
+        return 0;
+
+      case L_TK_SHOW_CURSOR:
+        if (luaH_checkboolean(L, 3))
+            gdk_window_set_cursor(GTK_WIDGET(d->win)->window, NULL);
+        else
+            gdk_window_set_cursor(GTK_WIDGET(d->win)->window, gdk_cursor_new_for_display(gdk_window_get_display(GTK_WIDGET(d->win)->window), GDK_BLANK_CURSOR));
         return 0;
 
       default:

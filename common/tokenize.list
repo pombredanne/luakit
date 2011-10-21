@@ -148,6 +148,7 @@ set_default_size
 set_title
 show
 show_border
+show_cursor
 show_frame
 show_scrollbars
 show_tabs
