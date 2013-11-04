@@ -7,3 +7,5 @@ luakit
 common/tokenize.h
 common/tokenize.c
 globalconf.h
+lunit
+luakit.1.gz

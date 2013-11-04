@@ -16,6 +16,7 @@ child
 children
 clear_search
 clipboard
+close_inspector
 config_dir
 confpath
 count
@@ -70,6 +71,7 @@ fantasy_font_family
 fg
 filename
 focus
+focused
 font
 frames
 full_content_zoom
@@ -90,6 +92,7 @@ id
 idle_timeout
 indexof
 insert
+inspector
 install_path
 interval
 javascript_can_access_clipboard
@@ -147,6 +150,7 @@ set_title
 show
 show_border
 show_frame
+show_inspector
 show_scrollbars
 show_tabs
 socket
@@ -185,6 +189,7 @@ verbose
 version
 videos_dir
 view_source
+visible
 vpaned
 webkit_user_agent_version
 webkit_version
